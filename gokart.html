@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EV-il Syndicate — Electric Go-Kart · FMAE FKDC 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #0a0a0c;
+    --bg2:        #0f0f12;
+    --bg3:        #141418;
+    --border:     #1e1e24;
+    --border-hi:  #2a2a33;
+    --text:       #e8e8f0;
+    --text-dim:   #8888a0;
+    --text-faint: #6a6a85;
+    --accent:     #7eb8f7;
+    --accent2:    #5a9de8;
+    --green:      #6bcb8b;
+    --amber:      #f0b44a;
+    --red:        #e05c5c;
+    --mono:       'IBM Plex Mono', monospace;
+    --sans:       'Inter', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+  #close-btn {
+    display: none;
+    position: fixed;
+    top: 16px; right: 20px; z-index: 100;
+    background: rgba(15,15,18,.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-hi);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: border-color .15s, color .15s;
+  }
+  #close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .page { max-width: 880px; margin: 0 auto; padding: 60px 32px 100px; }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .hero-title {
+    font-family: var(--mono);
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .hero-sub {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+    margin-bottom: 28px;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .htag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .htag.hw { color: var(--amber);  border-color: rgba(240,180,74,.25);  background: rgba(240,180,74,.06); }
+  .htag.sw { color: var(--accent); border-color: rgba(126,184,247,.25); background: rgba(126,184,247,.06); }
+  .htag.ai { color: var(--green);  border-color: rgba(107,203,139,.25); background: rgba(107,203,139,.06); }
+
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 36px; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    padding: 5px 12px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .badge-gold   { color: var(--amber); border-color: rgba(240,180,74,.35); background: rgba(240,180,74,.07); }
+  .badge-green  { color: var(--green); border-color: rgba(107,203,139,.3); background: rgba(107,203,139,.06); }
+  .badge-blue   { color: var(--accent); border-color: rgba(126,184,247,.3); background: rgba(126,184,247,.06); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  h2 { font-family: var(--mono); font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 14px; }
+  h3 { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); letter-spacing: .06em; margin: 28px 0 10px; }
+  p  { color: var(--text-dim); margin-bottom: 14px; font-size: 14.5px; }
+  p strong { color: var(--text); font-weight: 500; }
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    background: rgba(240,180,74,.08);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  /* ── Score table ── */
+  .score-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+    margin: 16px 0 28px;
+  }
+  .score-table th {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-hi);
+    color: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .score-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: middle;
+  }
+  .score-table td:first-child { color: var(--text); }
+  .score-table td:nth-child(2) { color: var(--accent); }
+  .score-table .bar-cell { width: 160px; }
+  .score-bar-wrap { background: var(--bg3); border-radius: 2px; height: 5px; width: 100%; }
+  .score-bar { height: 5px; border-radius: 2px; background: var(--accent); }
+  .score-bar.strong { background: var(--green); }
+  .score-bar.weak   { background: var(--amber); }
+  .score-table tr.total-row td { color: var(--text); border-top: 1px solid var(--border-hi); font-weight: 500; }
+  .score-table .note { color: var(--text-faint); font-size: 10px; }
+
+  /* ── Spec table ── */
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    margin: 16px 0 24px;
+  }
+  .spec-table th {
+    text-align: left;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border-hi);
+    color: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .spec-table td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .spec-table td:first-child { color: var(--amber); width: 46%; }
+  .spec-table td:last-child  { color: var(--text); }
+
+  /* ── Frag cards ── */
+  .frag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .frag-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    transition: border-color .15s;
+  }
+  .frag-card:hover { border-color: var(--border-hi); }
+  .frag-idx   { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 5px; }
+  .frag-title { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+  .frag-body  { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+  /* ── Decision block ── */
+  .decision-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin: 16px 0 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-dim);
+  }
+  .decision-block .d-label { font-size: 10px; letter-spacing: .14em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 8px; }
+  .decision-block span.hi   { color: var(--green); }
+  .decision-block span.warn { color: var(--amber); }
+  .decision-block span.red  { color: var(--red); }
+
+  /* ── Result pills ── */
+  .result-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+  .result-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 20px;
+    min-width: 140px;
+  }
+  .rp-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 6px; }
+  .rp-val   { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1; }
+  .rp-sub   { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+  .green { color: var(--green); }
+  .amber { color: var(--amber); }
+  .blue  { color: var(--accent); }
+
+  /* ── Toolchain ── */
+  .tc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 10px; margin: 16px 0;
+  }
+  .tc-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; font-family: var(--mono); font-size: 12px; }
+  .tc-name { color: var(--text); margin-bottom: 3px; }
+  .tc-desc { color: var(--text-faint); font-size: 11px; }
+
+  /* ── Team table ── */
+  .team-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+    margin: 16px 0 24px;
+  }
+  .team-table th {
+    text-align: left;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border-hi);
+    color: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .team-table td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+  .team-table td:first-child { color: var(--text); white-space: nowrap; }
+  .team-table tr.me td { color: var(--accent); }
+  .team-table tr.me td:first-child { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<button id="close-btn" onclick="window.parent.postMessage('closeGoKart','*')">&#10005; CLOSE</button>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero-eyebrow">Motorsport &middot; Electric Vehicle &middot; FMAE FKDC Season 9</div>
+  <div class="hero-title">EV-il Syndicate<br>Electric Go-Kart</div>
+  <div class="hero-sub">Formula Karting Design Challenge 2025 &mdash; NIT Andhra Pradesh &mdash; Kart No. E13</div>
+
+  <div class="hero-tags">
+    <span class="htag hw">72V Li-ion Powertrain</span>
+    <span class="htag hw">QS138 BLDC Motor</span>
+    <span class="htag hw">AISI 1018 Perimeter Chassis</span>
+    <span class="htag hw">Ackermann Steering</span>
+    <span class="htag hw">Hydraulic Disc Brakes</span>
+    <span class="htag sw">SolidWorks</span>
+    <span class="htag sw">ANSYS FEA</span>
+    <span class="htag sw">MATLAB/Simulink</span>
+  </div>
+
+  <div class="badge-row">
+    <span class="badge badge-gold">&#9733; AIR 7 Overall &mdash; FMAE FKDC 2025</span>
+    <span class="badge badge-green">AIR 5 &mdash; Endurance</span>
+    <span class="badge badge-blue">First Competition</span>
+  </div>
+
+  <hr class="divider">
+
+  <!-- RESULTS -->
+  <div class="section-label">Competition Results</div>
+  <h2>FMAE FKDC Season 9 &mdash; October 2025</h2>
+
+  <p>
+    EV-il Syndicate finished <strong>AIR 7 overall</strong> with a score of 671.26/1000 in their first competition. The team's strongest result was <strong>AIR 5 in Endurance</strong> - the highest-stakes event, where we performed admirably for a first-time team, even exceeding our initial expectations.
+  </p>
+
+  <table class="score-table">
+    <thead>
+      <tr>
+        <th>Event</th>
+        <th>Score</th>
+        <th>Max</th>
+        <th class="bar-cell">Performance</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Acceleration</td>
+        <td>60.66</td>
+        <td>75</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar strong" style="width:80.9%"></div></div></td>
+        <td class="note">81% &mdash; strong</td>
+      </tr>
+      <tr>
+        <td>Skidpad</td>
+        <td>69.78</td>
+        <td>100</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar strong" style="width:69.8%"></div></div></td>
+        <td class="note">70% &mdash; strong</td>
+      </tr>
+      <tr>
+        <td>Autocross</td>
+        <td>18.51</td>
+        <td>100</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar weak" style="width:18.5%"></div></div></td>
+        <td class="note">APPS-BSE fault &mdash; see below</td>
+      </tr>
+      <tr>
+        <td>Lateral Acceleration</td>
+        <td>57.05</td>
+        <td>80</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar strong" style="width:71.3%"></div></div></td>
+        <td class="note">71% &mdash; strong</td>
+      </tr>
+      <tr>
+        <td>Design Evaluation</td>
+        <td>67.00</td>
+        <td>80</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar strong" style="width:83.8%"></div></div></td>
+        <td class="note">84% &mdash; strong</td>
+      </tr>
+      <tr>
+        <td>Business Plan</td>
+        <td>25.00</td>
+        <td>60</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar weak" style="width:41.7%"></div></div></td>
+        <td class="note">42%</td>
+      </tr>
+      <tr>
+        <td>Cost Evaluation</td>
+        <td>45.00</td>
+        <td>80</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar" style="width:56.3%"></div></div></td>
+        <td class="note">56%</td>
+      </tr>
+      <tr>
+        <td>Endurance</td>
+        <td>228.26</td>
+        <td>300</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar strong" style="width:76.1%"></div></div></td>
+        <td class="note">76% &mdash; <strong style="color:var(--green)">AIR 5</strong></td>
+      </tr>
+      <tr>
+        <td>Bonus Points</td>
+        <td>100.00</td>
+        <td>100</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar strong" style="width:100%"></div></div></td>
+        <td class="note">100% &mdash; full</td>
+      </tr>
+      <tr class="total-row">
+        <td>Total</td>
+        <td>671.26</td>
+        <td>1000</td>
+        <td class="bar-cell"><div class="score-bar-wrap"><div class="score-bar strong" style="width:67.1%"></div></div></td>
+        <td class="note">AIR 7</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision-block">
+    <div class="d-label">Autocross &mdash; APPS-BSE plausibility fault</div>
+    The APPS-BSE (Accelerator Pedal Position Sensor / Brake System Encoder) interlock is a mandatory EV safety requirement: if brake and throttle are simultaneously active beyond threshold, the motor must cut within 500ms. During the autocross run, the BSE falsely reported brake engagement under high-vibration conditions, triggering a spurious motor cut mid-course. The driver manually disconnected the interlock wire and completed the course, but <span class="warn">the run time was outside the 107% delta</span>, classifying the event as a non-score run. All other dynamic events ran clean. The kart's handling performance in skidpad and lateral acceleration demonstrates the underlying vehicle dynamics were not the issue.
+  </div>
+
+  <hr class="divider">
+
+  <!-- VEHICLE OVERVIEW -->
+  <div class="section-label">Vehicle Specifications</div>
+  <h2>Full build overview</h2>
+
+  <div class="frag-grid">
+    <div class="frag-card">
+      <div class="frag-idx">Chassis</div>
+      <div class="frag-title">Perimeter Frame</div>
+      <div class="frag-body">AISI 1018 seamless mild steel, 1" OD &times; 2.5mm wall, arc-welded in-house. 44" wheelbase, 64&times;60&times;44" overall. FEA in ANSYS: min safety factor 1.15 at front mount, all deformations elastic. Chosen over chromoly (weld difficulty).</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Powertrain</div>
+      <div class="frag-title">QS138 90H BLDC + Chain Drive</div>
+      <div class="frag-body">4kW rated, 93% peak efficiency, 60+ Nm torque, IP67. 428 roller chain, 14T-38T sprockets (Gr = 2.71). Calculated top speed 101.3 km/h. 0-60 km/h in ~3s. Gear ratio selected after MATLAB trade-off: acceleration vs. top speed balance for FKDC dynamic events.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Battery Pack</div>
+      <div class="frag-title">72V 80Ah Dual-Module</div>
+      <div class="frag-body">Two 20s&times;10p modules (Molicel 21700, 4Ah, 45A continuous) wired in parallel: effective 20s&times;20p. 5.76 kWh usable. Peak discharge 32.4 kW. Symmetrically mounted for lateral balance. Passive air cooling, integrated BMS per module, UN38.3 certified.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Steering</div>
+      <div class="frag-title">Ackermann Geometry</div>
+      <div class="frag-body">95.13% Ackermann compliance. Inner lock 42.81&deg;, outer lock 26.83&deg;, average turning radius 2.06m. Twin tie-rod, no rack-and-pinion. Purely mechanical for simplicity and reliability. Steering ratio 2.021:1. 10&deg; camber.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Brakes</div>
+      <div class="frag-title">Rear Hydraulic Disc</div>
+      <div class="frag-body">220mm cast iron disc, floating caliper, DOT 3 fluid, steel-braided lines. 5:1 pedal ratio, 400N driver input &rarr; 7.05 MPa hydraulic pressure. Stopping distance: 11.05m (dry), 25.79m (wet) from 100 km/h. Aluminium pedal rated to 2000N.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Safety</div>
+      <div class="frag-title">FKDC §20.2 / §20.3 Compliant</div>
+      <div class="frag-body">Dual kill switches (seat + column), BOTS, APPS-BSE interlock, metallic firewall, dual fire extinguishers, accumulator isolation with double relays. Power-off indicator light + 2s audible ready-to-drive signal. Full compliance earned 100/100 bonus points.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- KEY SPECS -->
+  <div class="section-label">Performance Specifications</div>
+
+  <table class="spec-table">
+    <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Top Speed</td><td>~100 km/h (calc. 101.3 km/h)</td></tr>
+      <tr><td>0&ndash;60 km/h</td><td>~3 s</td></tr>
+      <tr><td>Range (2 kW cruise)</td><td>172.8 km</td></tr>
+      <tr><td>Peak discharge power</td><td>32.4 kW (per module)</td></tr>
+      <tr><td>Motor efficiency</td><td>&ge; 93%</td></tr>
+      <tr><td>Turning radius</td><td>2.06 m average</td></tr>
+      <tr><td>Braking (80-0 km/h)</td><td>13.2 m</td></tr>
+      <tr><td>Ackermann %</td><td>95.13%</td></tr>
+      <tr><td>Chassis weight</td><td>50 kg</td></tr>
+      <tr><td>Total vehicle mass</td><td>200 kg</td></tr>
+      <tr><td>FEA min safety factor</td><td>1.15 (front mount)</td></tr>
+      <tr><td>Total build cost</td><td>INR 3,14,100 (incl. battery)</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <!-- ELECTRICAL - Soumyadip's area -->
+  <div class="section-label">Electrical System</div>
+  <h2>Power distribution &amp; system integration</h2>
+
+  <p>The electrical system integrates the battery pack, motor controller, safety interlocks, and instrumentation into a cohesive, regulation-compliant EV platform.</p>
+
+  <div class="frag-grid">
+    <div class="frag-card">
+      <div class="frag-idx">Motor Controller</div>
+      <div class="frag-title">ND72680</div>
+      <div class="frag-body">Matched to QS138 90H. Handles field-oriented control for the BLDC motor at 72V nominal. Hall sensor throttle input, LCD speedometer output, DC-DC converter for 12V aux systems. Configured for FKDC peak-torque and thermal limits.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Pack Architecture</div>
+      <div class="frag-title">Dual-Module 20s&times;20p</div>
+      <div class="frag-body">Two independent 20s&times;10p modules allow physical separation for lateral weight balance. Each module has its own BMS. Parallel connection at the main contactor. Peak pack current: 450A discharge, 135A charge. Internal resistance: 27.6 m&Omega;.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Protection Chain</div>
+      <div class="frag-title">BMS + Fusing + Interlock</div>
+      <div class="frag-body">Per-cell fuse: 56.3A. BMS thresholds: over-voltage 4.25V/cell, under-voltage 2.50V/cell, temp cut-off 60&deg;C. Main contactor + accumulator isolation relays. Watt-meter analyser for live power monitoring. SOC tracked via coulomb counting.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Safety Interlocks</div>
+      <div class="frag-title">APPS-BSE / BOTS / Kill</div>
+      <div class="frag-body">APPS-BSE: motor cut within 500ms if brake + throttle simultaneously active. BOTS: motor cut on brake over-travel (hydraulic failure indicator). Dual kill switches: immediate traction cutoff, brake light remains live. All wiring 70mm&sup2; cable, steel-braided brake lines.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- DESIGN DECISIONS -->
+  <div class="section-label">Key Design Decisions</div>
+
+  <div class="decision-block">
+    <div class="d-label">AISI 1018 over 4130 chromoly</div>
+    4130 offers higher yield strength but requires specialised welding, local unavailability drove up cost, and the strength advantage disappears when section geometry is equivalent. <span class="hi">1018 seamless pipe is weldable with standard MIG in-house</span>, available locally, and the FEA confirmed adequate safety factors throughout - no reinforcements required post-analysis.
+  </div>
+
+  <div class="decision-block">
+    <div class="d-label">Symmetric dual battery module placement</div>
+    A single large module is simpler but creates lateral CG offset. Splitting into two identical 20s&times;10p modules and mounting symmetrically on either side of the chassis <span class="hi">eliminates side-bias during high-speed cornering</span>. Each module also has its own BMS, providing redundancy - one module can be isolated without losing full drive capability.
+  </div>
+
+  <div class="decision-block">
+    <div class="d-label">14T-38T sprocket ratio (Gr = 2.71)</div>
+    Two ratios were analysed: 2.62 and 3.15. Lower ratio (2.62) gives higher top speed; higher ratio (3.15) gives better low-end torque. <span class="warn">FKDC events reward acceleration and cornering over outright top speed</span>, so 2.71 (the 14T-38T combination) was chosen as the crossover point - sufficient torque for dynamic events while staying within the motor's RPM band at top speed.
+  </div>
+
+  <hr class="divider">
+
+  <!-- TEAM -->
+  <div class="section-label">Team</div>
+  <h2>EV-il Syndicate &mdash; NIT Andhra Pradesh</h2>
+
+  <table class="team-table">
+    <thead><tr><th>Name</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>Surojit Das</td><td>Captain &mdash; overall leadership, design integration</td></tr>
+      <tr><td>Harshil</td><td>Team manager, timeline coordination</td></tr>
+      <tr><td>Vivekanand Ojha</td><td>Structural analysis head, FEA &amp; frame optimization</td></tr>
+      <tr><td>Kaif Khan</td><td>Steering team head, mechanism design &amp; analysis</td></tr>
+      <tr><td>Shaswat Shrey</td><td>CFD team head, simulation &amp; thermal analysis</td></tr>
+      <tr><td>Atharva Sonawane</td><td>CFD team member, meshing &amp; post-processing</td></tr>
+      <tr><td>Aditya Raval</td><td>Vehicle dynamics head, suspension &amp; kinematics</td></tr>
+      <tr><td>Sneha Sree</td><td>Electrical team, battery simulation</td></tr>
+      <tr class="me"><td>Soumyadip Das</td><td>Electrical team &mdash; power distribution &amp; system integration</td></tr>
+      <tr><td>Kishan</td><td>Driver 1, electrical head, wiring &amp; sensors</td></tr>
+      <tr><td>Samip</td><td>Driver 2, performance feedback</td></tr>
+      <tr><td>Chanikya Bokam</td><td>Documentation, technical sections</td></tr>
+      <tr><td>Mohammed Naveedh M</td><td>Documentation head, report compilation</td></tr>
+      <tr><td>Siddhesh Choure</td><td>Sponsorship head</td></tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:13px; color:var(--text-faint); font-family:var(--mono);">Faculty Advisor: Dr. Karthikeya Sharma &mdash; NIT Andhra Pradesh</p>
+
+  <hr class="divider">
+
+  <!-- OUTCOME -->
+  <div class="section-label">Outcome</div>
+
+  <div class="result-row">
+    <div class="result-pill">
+      <div class="rp-label">Overall Rank</div>
+      <div class="rp-val amber">AIR 7</div>
+      <div class="rp-sub">671.26 / 1000</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Endurance Rank</div>
+      <div class="rp-val green">AIR 5</div>
+      <div class="rp-sub">228.26 / 300</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Bonus Points</div>
+      <div class="rp-val green">100/100</div>
+      <div class="rp-sub">Full compliance score</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Competition</div>
+      <div class="rp-val blue" style="font-size:14px;padding-top:3px;">First</div>
+      <div class="rp-sub">FMAE FKDC Season 9</div>
+    </div>
+  </div>
+
+  <p>
+    The endurance result is the most meaningful metric for a first-time team. Endurance rewards <strong>reliability, power management, and sustained performance</strong> over the full run duration - exactly the properties a well-integrated electrical system delivers. Multiple experienced teams did not finish the endurance event. EV-il Syndicate completed it and placed AIR 5.
+  </p>
+
+  <hr class="divider">
+
+  <!-- TOOLCHAIN -->
+  <div class="section-label">Tools &amp; Simulation</div>
+  <div class="tc-grid">
+    <div class="tc-item">
+      <div class="tc-name">SolidWorks</div>
+      <div class="tc-desc">Primary 3D CAD, assembly, part drafting</div>
+    </div>
+    <div class="tc-item">
+      <div class="tc-name">ANSYS Workbench</div>
+      <div class="tc-desc">Structural FEA, CFD airflow, crash scenario validation</div>
+    </div>
+    <div class="tc-item">
+      <div class="tc-name">MATLAB + Simulink</div>
+      <div class="tc-desc">Vehicle dynamics, powertrain model, regen braking</div>
+    </div>
+    <div class="tc-item">
+      <div class="tc-name">FreeCAD / Fusion 360</div>
+      <div class="tc-desc">Individual part experimentation pre-SolidWorks merge</div>
+    </div>
+    <div class="tc-item">
+      <div class="tc-name">In-house Workshop</div>
+      <div class="tc-desc">Manual arc weld, pipe bender, drill press, precision jigs</div>
+    </div>
+    <div class="tc-item">
+      <div class="tc-name">GoPro + Multimeter</div>
+      <div class="tc-desc">Driver posture recording, motor controller thermal monitoring</div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  if (window.self !== window.top) {
+    document.getElementById('close-btn').style.display = 'block';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Micromouse - Autonomous Maze Solver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #0a0a0c;
+    --bg2:        #0f0f12;
+    --bg3:        #141418;
+    --border:     #1e1e24;
+    --border-hi:  #2a2a33;
+    --text:       #e8e8f0;
+    --text-dim:   #8888a0;
+    --text-faint: #6a6a85;
+    --accent:     #7eb8f7;
+    --accent2:    #5a9de8;
+    --green:      #6bcb8b;
+    --amber:      #f0b44a;
+    --red:        #e05c5c;
+    --mono:       'IBM Plex Mono', monospace;
+    --sans:       'Inter', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  #close-btn {
+    display: none;
+    position: fixed;
+    top: 16px; right: 20px; z-index: 100;
+    background: rgba(15,15,18,.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-hi);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: border-color .15s, color .15s;
+  }
+  #close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .page { max-width: 880px; margin: 0 auto; padding: 60px 32px 100px; }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .hero-title {
+    font-family: var(--mono);
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .hero-sub {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+    margin-bottom: 28px;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 44px; }
+  .htag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .htag.hw  { color: var(--amber);  border-color: rgba(240,180,74,.25);  background: rgba(240,180,74,.06); }
+  .htag.sw  { color: var(--accent); border-color: rgba(126,184,247,.25); background: rgba(126,184,247,.06); }
+  .htag.ai  { color: var(--green);  border-color: rgba(107,203,139,.25); background: rgba(107,203,139,.06); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  h3 {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: .06em;
+    margin: 28px 0 10px;
+  }
+  p { color: var(--text-dim); margin-bottom: 14px; font-size: 14.5px; }
+  p strong { color: var(--text); font-weight: 500; }
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    background: rgba(240,180,74,.08);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  .tic-showcase {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0 36px;
+  }
+  .tic-device {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+  }
+  .tic-device-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .12em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    align-self: flex-start;
+    margin-bottom: 2px;
+  }
+  .tic-caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    text-align: center;
+    letter-spacing: .04em;
+  }
+  .tic-wide { grid-column: 1 / -1; }
+
+  .pipeline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: nowrap;
+    padding: 20px 12px;
+  }
+  .pipe-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+  .pipe-box {
+    background: var(--bg3);
+    border: 1px solid var(--border-hi);
+    border-radius: 6px;
+    padding: 9px 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    word-break: break-word;
+    text-align: center;
+    width: 100%;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.35;
+  }
+  .pipe-box.accent { border-color: var(--accent2); color: var(--accent); }
+  .pipe-box.green  { border-color: rgba(107,203,139,.4); color: var(--green); }
+  .pipe-box.amber  { border-color: rgba(240,180,74,.4);  color: var(--amber); }
+  .pipe-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: .06em;
+    text-align: center;
+  }
+  .pipe-arrow {
+    font-size: 16px;
+    color: var(--border-hi);
+    flex-shrink: 0;
+    align-self: flex-start;
+    padding: 18px 5px 0;
+  }
+
+  .frag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .frag-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    transition: border-color .15s;
+  }
+  .frag-card:hover { border-color: var(--border-hi); }
+  .frag-idx {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .frag-title { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+  .frag-body  { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+  .bw-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px;
+    margin: 20px 0;
+  }
+  .bw-row { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+  .bw-label { font-family: var(--mono); font-size: 12px; color: var(--text-dim); width: 180px; flex-shrink: 0; }
+  .bw-bar-track { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+  .bw-bar-fill  { height: 100%; border-radius: 4px; }
+  .bw-val { font-family: var(--mono); font-size: 12px; width: 84px; text-align: right; flex-shrink: 0; }
+  .bw-note {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    line-height: 1.7;
+  }
+  .bw-note span { color: var(--green); }
+
+  .math-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12.5px; margin: 16px 0; }
+  .math-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text-dim); }
+  .math-table td:first-child { color: var(--text-faint); }
+  .math-table td:last-child  { text-align: right; }
+  .math-table tr.deficit td  { color: var(--red); }
+  .math-table tr.avail td    { color: var(--green); }
+
+  .result-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+  .result-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 20px;
+    min-width: 150px;
+  }
+  .rp-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 6px; }
+  .rp-val   { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1; }
+  .rp-sub   { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+  .green { color: var(--green); }
+  .amber { color: var(--amber); }
+  .blue  { color: var(--accent); }
+  .red   { color: var(--red); }
+
+  .tc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 10px; margin: 16px 0;
+  }
+  .tc-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; font-family: var(--mono); font-size: 12px; }
+  .tc-name { color: var(--text); margin-bottom: 3px; }
+  .tc-desc { color: var(--text-faint); font-size: 11px; }
+
+  pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 4px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 16px 0 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+  pre .kw  { color: var(--accent); }
+  pre .num { color: var(--amber); }
+  pre .cmt { color: var(--text-faint); font-style: italic; }
+
+  .img-frame {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 20px 0 32px;
+    line-height: 0;
+    background: var(--bg3);
+  }
+  .img-frame img {
+    width: 100%;
+    height: auto;
+    display: block;
+    opacity: 0.95;
+  }
+  .img-caption-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: #000;
+    border-top: 1px solid #000;
+    padding: 9px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    line-height: 1.5;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .page { padding: 40px 20px 80px; }
+    .tic-showcase { grid-template-columns: 1fr; }
+    .tic-wide { grid-column: auto; }
+    .bw-row { flex-wrap: wrap; }
+    .bw-label { width: 100%; }
+    .pipeline { flex-wrap: wrap; gap: 10px; }
+    .pipe-arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<button id="close-btn" onclick="window.parent.postMessage('closeMicromouse','*')">✕ &nbsp;CLOSE</button>
+
+<div class="page">
+
+  <div class="hero-eyebrow">Embedded Robotics · Early Project, Later Rewrite</div>
+  <div class="hero-title">Micromouse — Autonomous Maze Solver</div>
+  <div class="hero-sub">ESP32 Differential Drive &nbsp;·&nbsp; Flood Fill Navigation &nbsp;·&nbsp; Encoder-Based Motion &nbsp;·&nbsp; MPU6050 Turn Control &nbsp;·&nbsp; 3-Sensor Wall Mapping</div>
+  <div class="hero-tags">
+    <span class="htag hw">ESP32</span>
+    <span class="htag hw">N20 Motors</span>
+    <span class="htag hw">MPU6050</span>
+    <span class="htag hw">Ultrasonic Array</span>
+    <span class="htag sw">Flood Fill</span>
+    <span class="htag sw">Bitmask Walls</span>
+    <span class="htag sw">C++ / Arduino</span>
+    <span class="htag ai">Simulation + Robot</span>
+  </div>
+  <div style="margin-bottom:32px;">
+    <a href="https://github.com/GreaseMonkeyIT/ESP32-Micromouse" target="_blank"
+       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(126,184,247,.04);transition:border-color .15s,color .15s;"
+       onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+       onmouseout="this.style.borderColor='var(--border-hi)';this.style.color='var(--text-dim)'">
+      ↗ &nbsp;VIEW ON GITHUB
+    </a>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">The Build</div>
+  <h2>Prototype Hardware</h2>
+  <p>
+    This project began as one of my earliest robotics builds: a small differential-drive
+    Micromouse using an <strong>ESP32</strong>, <strong>N20 gear motors</strong>, wheel encoders,
+    an <strong>MPU6050</strong> for turn control, and <strong>three ultrasonic sensors</strong>
+    for left / front / right wall detection. The goal was not just to solve a maze once, but
+    to maintain an internal map and move cell-by-cell with repeatable control.
+  </p>
+  <p>
+    What makes the project interesting now is not the first version of the mouse, but the
+    fact that I later revisited the code and rewrote several core pieces after understanding
+    its weaknesses more clearly.
+  </p>
+
+  <div class="img-frame" style="margin-bottom:0; border-radius:8px 8px 0 0;">
+    <img src="microMouse-main/microMouse-main/Other_Data/ESP32-Pinout.jpg"
+         alt="ESP32 pinout used as reference for the Micromouse control stack">
+  </div>
+  <div style="
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: .04em;
+    margin-bottom: 32px;
+  ">
+    ESP32 pinout; used as reference for the Micromouse control stack
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">What Changed</div>
+  <h2>Original Solver vs Hardware-Side Rewrite</h2>
+  <p>
+    The repository still shows <strong>two stages</strong> of the project. The simulator code preserves
+    the earlier version: walls stored as orientation-relative integer states, long conditional
+    lookup trees, and flood-fill logic built around that representation. The hardware-integration
+    code is the later rewrite: cleaner wall storage, reciprocal map updates, faster queue logic,
+    and better turn handling for a real robot.
+  </p>
+
+  <div class="tic-device" style="margin: 24px 0;">
+    <div class="tic-device-label">Navigation stack evolution</div>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-box accent">Simulator<br>prototype</div>
+        <div class="pipe-sub">integer wall states</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box">hardware<br>constraints</div>
+        <div class="pipe-sub">drift, latency, asymmetry</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box green">bitmask<br>rewrite</div>
+        <div class="pipe-sub">absolute wall storage</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box amber">motion<br>refinement</div>
+        <div class="pipe-sub">delta-angle turns</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box">robot-ready<br>loop</div>
+        <div class="pipe-sub">map, choose, move</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tic-showcase">
+    <div class="tic-device">
+      <div class="tic-device-label">Orientation lookup reference</div>
+      <img src="microMouse-main/microMouse-main/Other_Data/Orientation.png"
+           alt="Orientation reference used in the Micromouse project"
+           style="width:100%; border-radius:4px; display:block; border:1px solid var(--border); background:var(--bg2);">
+      <div class="tic-caption">Forward / right / backward / left mapping for maze navigation</div>
+    </div>
+    <div class="tic-device">
+      <div class="tic-device-label">Wall-state reference</div>
+      <img src="microMouse-main/microMouse-main/Other_Data/Wall_Status.png"
+           alt="Wall state reference for the Micromouse project"
+           style="width:100%; border-radius:4px; display:block; border:1px solid var(--border); background:var(--bg2);">
+      <div class="tic-caption">Legacy wall-state encoding from the original simulator-stage logic</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Mapping Architecture</div>
+  <h2>Four Key Improvements</h2>
+  <p>
+    The rewrite was driven by four issues that mattered on the real robot: map consistency,
+    turn drift, control-loop blocking, and path efficiency. These were not cosmetic cleanups -
+    they changed the behavior of the robot materially.
+  </p>
+
+  <div class="frag-grid">
+    <div class="frag-card">
+      <div class="frag-idx">Map Integrity</div>
+      <div class="frag-title">Reciprocal wall writes</div>
+      <div class="frag-body">
+        The old solver could observe a wall from one side but fail to represent it cleanly from
+        the neighbor's perspective. The rewrite uses absolute wall bits plus a
+        <code>setWall()</code> helper that updates both cells immediately, so accessibility checks
+        no longer depend on fragile mirrored condition tables.
+      </div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Representation</div>
+      <div class="frag-title">4-bit absolute wall masks</div>
+      <div class="frag-body">
+        <code>cellsArray</code> integer states were replaced with <code>WALL_N / E / S / W</code> bitmasks.
+        That collapsed a long orientation-relative encoding tree into a compact direction map and
+        made <code>isAccessible()</code> a direct bit check instead of a wall-code lookup problem.
+      </div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Turn Control</div>
+      <div class="frag-title">Per-turn delta heading</div>
+      <div class="frag-body">
+        The old turn logic accumulated heading history and let drift compound across many turns.
+        The improved version snapshots <code>startAngle</code> and turns to
+        <code>startAngle ± 85°</code>, which keeps each maneuver locally bounded and far more stable.
+      </div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Loop Speed</div>
+      <div class="frag-title">Lower sensing overhead</div>
+      <div class="frag-body">
+        Sensor averaging was shortened from 5 pings × 30 ms to 3 pings × 20 ms per sonar,
+        reducing blocking time significantly. Queue entries were also packed as
+        <code>x * 16 + y</code>, simplifying flood-fill propagation on the embedded side.
+      </div>
+    </div>
+  </div>
+
+  <h3>Updated wall representation</h3>
+<pre><span class="cmt">// absolute wall bits, not orientation-relative codes</span>
+<span class="kw">#define</span> WALL_N <span class="num">0x01</span>
+<span class="kw">#define</span> WALL_E <span class="num">0x02</span>
+<span class="kw">#define</span> WALL_S <span class="num">0x04</span>
+<span class="kw">#define</span> WALL_W <span class="num">0x08</span>
+
+uint8_t walls[<span class="num">16</span>][<span class="num">16</span>] = {<span class="num">0</span>};
+
+<span class="kw">void</span> setWall(<span class="kw">int</span> x, <span class="kw">int</span> y, uint8_t dir) {
+    walls[x][y] |= dir;
+    <span class="cmt">// reciprocal wall update on neighbour</span>
+}</pre>
+
+  <h3>Turn control update</h3>
+<pre><span class="cmt">// old: target based on accumulated prevAngle</span>
+<span class="cmt">// new: target based on this turn only</span>
+mpu.update();
+<span class="kw">float</span> startAngle  = mpu.getAngleZ();
+<span class="kw">float</span> targetAngle = startAngle + <span class="num">85.0</span>;
+
+<span class="kw">while</span> (mpu.getAngleZ() &lt; targetAngle) {
+    mpu.update();
+    <span class="kw">float</span> correction = (targetAngle - mpu.getAngleZ()) * correctionFactor;
+    Right();
+}</pre>
+
+  <hr class="divider">
+
+  <div class="section-label">Control Loop</div>
+  <h2>How The Robot Decides Its Next Move</h2>
+  <p>
+    Each maze step follows a simple loop: sense walls, update the map, repair local flood values
+    if needed, choose the lowest-cost accessible neighbor, then execute motion using encoder-based
+    forward travel and gyro-assisted turning. The logic is still intentionally lightweight, but it
+    is much more disciplined than the original version.
+  </p>
+
+  <div class="tic-device" style="margin: 24px 0;">
+    <div class="tic-device-label">Cell-to-cell navigation cycle</div>
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-box accent">sense<br>left / front / right</div>
+        <div class="pipe-sub">3 ultrasonic readings</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box">update<br>walls[x][y]</div>
+        <div class="pipe-sub">absolute direction map</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box green">flood-fill<br>repair</div>
+        <div class="pipe-sub">only inconsistent cells</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box amber">choose<br>direction</div>
+        <div class="pipe-sub">prefer straight on ties</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step">
+        <div class="pipe-box">move one<br>cell</div>
+        <div class="pipe-sub">encoders + MPU6050</div>
+      </div>
+    </div>
+  </div>
+
+  <p>
+    The robot still has clear room to grow - the return-to-start / speed-run stage is not yet
+    implemented - but the internal loop is now in much better shape for repeatable maze traversal.
+  </p>
+
+  <hr class="divider">
+
+  <div class="section-label">Performance Analysis</div>
+  <h2>Why The Rewrite Matters On Real Hardware</h2>
+  <p>
+    The biggest embedded bottleneck in the original design was not the flood-fill itself; it was
+    the control loop around it. Three sonar sensors sampled with heavy averaging create a large
+    fixed delay before every navigation decision. Reducing that delay makes the robot noticeably
+    more responsive without changing the maze algorithm at all.
+  </p>
+
+  <table class="math-table">
+    <tr><td>Old averaging</td><td>5 pings × 30 ms × 3 sensors</td><td>450 ms blocked</td></tr>
+    <tr class="avail"><td>Current averaging</td><td>3 pings × 20 ms × 3 sensors</td><td>180 ms blocked</td></tr>
+    <tr><td>Queue encoding</td><td>single int cell id</td><td>x * 16 + y</td></tr>
+    <tr><td>Boundary walls</td><td>loaded at startup</td><td>known without sensing</td></tr>
+    <tr class="deficit"><td>Still missing</td><td>speed-run phase</td><td>future work</td></tr>
+  </table>
+
+  <div class="bw-block">
+    <div class="bw-row" style="margin-bottom:18px;">
+      <div class="bw-label" style="color:var(--red)">Old sensor loop</div>
+      <div class="bw-bar-track"><div class="bw-bar-fill" style="background:var(--red); width:100%;"></div></div>
+      <div class="bw-val" style="color:var(--red)">450 ms</div>
+    </div>
+    <div class="bw-row">
+      <div class="bw-label" style="color:var(--green)">Current sensor loop</div>
+      <div class="bw-bar-track"><div class="bw-bar-fill" style="background:var(--green); width:40%;"></div></div>
+      <div class="bw-val" style="color:var(--green)">180 ms</div>
+    </div>
+    <div class="bw-note">
+      This is not a theoretical micro-optimization. The rewrite reduces control-loop blocking by
+      about <span>60%</span>, which means flood-fill updates and movement decisions happen much sooner
+      after each cell crossing. The maze algorithm matters, but the robot only feels smart when
+      the sensing and motion loop are fast enough to support it.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Results</div>
+  <h2>Outcome</h2>
+
+  <div class="result-row">
+    <div class="result-pill">
+      <div class="rp-label">Map Model</div>
+      <div class="rp-val blue">Bitmask</div>
+      <div class="rp-sub">absolute N / E / S / W walls</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Wall Sync</div>
+      <div class="rp-val green">Reciprocal</div>
+      <div class="rp-sub">both cells updated together</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Motion Base</div>
+      <div class="rp-val amber">Encoders</div>
+      <div class="rp-sub">distance-based forward travel</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Turn Logic</div>
+      <div class="rp-val blue">Delta-Angle</div>
+      <div class="rp-sub">per-turn heading target</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Loop Blocking</div>
+      <div class="rp-val green">180 ms</div>
+      <div class="rp-sub">current sensor averaging path</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Status</div>
+      <div class="rp-val amber">Rewrite Done</div>
+      <div class="rp-sub">speed-run phase still pending</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Toolchain</div>
+  <h2>Build Stack</h2>
+
+  <div class="tc-grid">
+    <div class="tc-item"><div class="tc-name">ESP32</div><div class="tc-desc">main microcontroller for sensing, mapping, and drive control</div></div>
+    <div class="tc-item"><div class="tc-name">Arduino C++</div><div class="tc-desc">embedded firmware for the hardware-integration path</div></div>
+    <div class="tc-item"><div class="tc-name">Flood Fill</div><div class="tc-desc">cell-cost propagation toward the maze center</div></div>
+    <div class="tc-item"><div class="tc-name">MPU6050_light</div><div class="tc-desc">gyro-based heading feedback during turns</div></div>
+    <div class="tc-item"><div class="tc-name">NewPing</div><div class="tc-desc">ultrasonic distance acquisition for wall sensing</div></div>
+    <div class="tc-item"><div class="tc-name">Wheel Encoders</div><div class="tc-desc">distance-based one-cell forward movement</div></div>
+    <div class="tc-item"><div class="tc-name">Simulator API</div><div class="tc-desc">older maze-simulation path preserved for algorithm iteration</div></div>
+    <div class="tc-item"><div class="tc-name">Frame Design STL</div><div class="tc-desc">mechanical chassis artifact retained in the repo</div></div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  if (window.self !== window.top) {
+    document.getElementById('close-btn').style.display = 'block';
+  }
+</script>
+</body>
+</html>

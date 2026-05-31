@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IoT PV Digital Twin — GENESIS 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #0a0a0c;
+    --bg2:        #0f0f12;
+    --bg3:        #141418;
+    --border:     #1e1e24;
+    --border-hi:  #2a2a33;
+    --text:       #e8e8f0;
+    --text-dim:   #8888a0;
+    --text-faint: #6a6a85;
+    --accent:     #7eb8f7;
+    --accent2:    #5a9de8;
+    --green:      #6bcb8b;
+    --amber:      #f0b44a;
+    --red:        #e05c5c;
+    --teal:       #5bc8c8;
+    --mono:       'IBM Plex Mono', monospace;
+    --sans:       'Inter', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+  #close-btn {
+    display: none;
+    position: fixed;
+    top: 16px; right: 20px; z-index: 100;
+    background: rgba(15,15,18,.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-hi);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: border-color .15s, color .15s;
+  }
+  #close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .page { max-width: 880px; margin: 0 auto; padding: 60px 32px 100px; }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .hero-title {
+    font-family: var(--mono);
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .hero-sub {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+    margin-bottom: 28px;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .htag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .htag.hw  { color: var(--amber); border-color: rgba(240,180,74,.25);  background: rgba(240,180,74,.06); }
+  .htag.sw  { color: var(--accent); border-color: rgba(126,184,247,.25); background: rgba(126,184,247,.06); }
+  .htag.ai  { color: var(--green); border-color: rgba(107,203,139,.25);  background: rgba(107,203,139,.06); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  h3 {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: .06em;
+    margin: 28px 0 10px;
+  }
+  p { color: var(--text-dim); margin-bottom: 14px; font-size: 14.5px; }
+  p strong { color: var(--text); font-weight: 500; }
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    background: rgba(240,180,74,.08);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  /* ── Timeline / journey ── */
+  .timeline { position: relative; padding-left: 28px; margin: 24px 0; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: var(--border-hi);
+  }
+  .tl-item { position: relative; margin-bottom: 32px; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-dot {
+    position: absolute;
+    left: -25px; top: 5px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    border: 1px solid;
+  }
+  .tl-dot.phase-1 { background: rgba(240,180,74,.2);  border-color: var(--amber); }
+  .tl-dot.phase-2 { background: rgba(107,203,139,.2); border-color: var(--green); }
+  .tl-dot.phase-3 { background: rgba(91,200,200,.2);  border-color: var(--teal); }
+  .tl-dot.phase-4 { background: rgba(126,184,247,.2); border-color: var(--accent); }
+  .tl-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .tl-label.phase-1 { color: var(--amber); }
+  .tl-label.phase-2 { color: var(--green); }
+  .tl-label.phase-3 { color: var(--teal); }
+  .tl-label.phase-4 { color: var(--accent); }
+  .tl-head { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+  .tl-body { font-size: 14px; color: var(--text-dim); line-height: 1.7; }
+
+  /* ── Architecture diagram ── */
+  .arch-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 20px;
+    margin: 20px 0 32px;
+    overflow-x: auto;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: nowrap;
+  }
+  .arch-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .arch-node {
+    background: var(--bg3);
+    border: 1px solid var(--border-hi);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.4;
+    min-width: 110px;
+  }
+  .arch-node .a-title { font-size: 13px; font-weight: 500; }
+  .arch-node .a-sub   { font-size: 10px; color: var(--text-faint); letter-spacing: .06em; margin-top: 3px; }
+  .arch-node.weather  { border-color: rgba(107,203,139,.45); color: var(--green); }
+  .arch-node.pvgis    { border-color: rgba(91,200,200,.45);  color: var(--teal); }
+  .arch-node.sim      { border-color: rgba(240,180,74,.45);  color: var(--amber); }
+  .arch-node.pipeline { border-color: rgba(126,184,247,.45); color: var(--accent); }
+  .arch-node.flask    { border-color: rgba(240,180,74,.35);  color: var(--amber); }
+  .arch-node.dash     { border-color: rgba(107,203,139,.35); color: var(--green); }
+  .arch-arrow { font-size: 15px; color: var(--border-hi); flex-shrink: 0; padding: 0 8px; }
+  .arch-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: .08em;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* ── Component cards ── */
+  .frag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .frag-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    transition: border-color .15s;
+  }
+  .frag-card:hover { border-color: var(--border-hi); }
+  .frag-idx   { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 5px; }
+  .frag-title { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+  .frag-body  { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+  /* ── API table ── */
+  .api-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    margin: 16px 0 24px;
+  }
+  .api-table th {
+    text-align: left;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border-hi);
+    color: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .api-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+  .api-table td:first-child  { color: var(--green);  white-space: nowrap; }
+  .api-table td:nth-child(2) { color: var(--accent); white-space: nowrap; }
+
+  /* ── Fault table ── */
+  .fault-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    margin: 16px 0 24px;
+  }
+  .fault-table th {
+    text-align: left;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border-hi);
+    color: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .fault-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: top;
+    font-size: 12px;
+  }
+  .fault-table td:first-child { color: var(--amber); white-space: nowrap; font-size: 11px; }
+  .fault-table .isc-drop { color: var(--red); }
+  .fault-table .voc-drop { color: var(--amber); }
+  .fault-table .ok { color: var(--green); }
+
+  /* ── Decision blocks ── */
+  .decision-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin: 16px 0 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-dim);
+  }
+  .decision-block .d-label {
+    font-size: 10px;
+    letter-spacing: .14em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .decision-block span.hi   { color: var(--green); }
+  .decision-block span.warn { color: var(--amber); }
+  .decision-block span.eq   { color: var(--teal); font-style: italic; }
+
+  /* ── Result pills ── */
+  .result-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+  .result-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 20px;
+    min-width: 150px;
+  }
+  .rp-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 6px; }
+  .rp-val   { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1; }
+  .rp-sub   { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+  .green { color: var(--green); }
+  .amber { color: var(--amber); }
+  .blue  { color: var(--accent); }
+  .teal  { color: var(--teal); }
+
+  /* ── Toolchain grid ── */
+  .tc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px; margin: 16px 0;
+  }
+  .tc-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; font-family: var(--mono); font-size: 12px; }
+  .tc-name { color: var(--text); margin-bottom: 3px; }
+  .tc-desc { color: var(--text-faint); font-size: 11px; }
+
+  /* ── City grid ── */
+  .city-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin: 16px 0 24px;
+  }
+  .city-pill {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .city-name  { color: var(--text); margin-bottom: 2px; }
+  .city-state { color: var(--text-faint); font-size: 10px; }
+  .city-tilt  { color: var(--teal); font-size: 10px; margin-top: 4px; }
+
+  /* ── Citation box ── */
+  .citation-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--text-faint);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    line-height: 1.7;
+  }
+  .citation-box .c-label {
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--text-faint);
+  }
+</style>
+</head>
+<body>
+
+<button id="close-btn" onclick="window.parent.postMessage('closeIoTPV','*')">✕ CLOSE</button>
+
+<div class="page">
+
+  <!-- ── HERO ── -->
+  <div class="hero-eyebrow">IoT · Renewable Energy · Anomaly Detection · 2nd Prize GENESIS 2025</div>
+  <div class="hero-title">PV Monitoring and Analysis</div>
+  <div class="hero-sub">100 kWp Solar Plant · Physics Simulation · K-Means Fault Detection · PVGIS-ERA5 Baseline</div>
+  <div class="hero-tags">
+    <span class="htag hw">ESP32</span>
+    <span class="htag hw">LoRaWAN</span>
+    <span class="htag sw">Python · Flask</span>
+    <span class="htag sw">PVGIS-ERA5 API</span>
+    <span class="htag sw">Chart.js</span>
+    <span class="htag ai">scikit-learn</span>
+    <span class="htag ai">Physics-based PV Model</span>
+    <span class="htag ai">Anomaly Detection</span>
+  </div>
+  <div style="margin-bottom:32px;">
+    <a href="https://github.com/GreaseMonkeyIT/PV_Monitor" target="_blank"
+       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(126,184,247,.04);transition:border-color .15s,color .15s;"
+       onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+       onmouseout="this.style.borderColor='var(--border-hi)';this.style.color='var(--text-dim)'">
+      ↗ &nbsp;VIEW ON GITHUB
+    </a>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── GENESIS AWARD ── -->
+  <div class="section-label">Award</div>
+  <h2>2nd Prize — GENESIS 2025</h2>
+  <p>
+    GENESIS is the national-level project expo run by the Department of Electrical Engineering, NIT-ANP. The 
+    IoT PV Digital Twin was selected as a 2nd Prize winner from submissions across the competition.
+  </p>
+
+  <hr class="divider">
+
+  <!-- ── JOURNEY ── -->
+  <div class="section-label">Project Evolution</div>
+  <h2>From Paper to Digital Twin</h2>
+
+  <p>
+    This project began as an effort to expand the scope of our Smart India Hackathon (SIH) 2024 
+    software stack developed for Problem Statement SIH1739 (ISRO/VEDAS). While exploring practical 
+    photovoltaic monitoring and data acquisition systems, we drew inspiration from an IEEE paper 
+    on LoRaWAN-based PV condition monitoring presented at PEDES 2022 by researchers from the 
+    Singapore Institute of Technology.
+    The paper established the hardware layer: custom 16-channel
+    PCBs measuring panel voltage, current, and temperature via optically isolated ADCs,
+    ESP-NOW mesh aggregation, and LoRa long-range uplink at -105 dBm RSSI in NLOS conditions.
+    The paper explicitly called out anomaly detection and irradiance prediction as future work.
+    That gap became the scope of this project.
+  </p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot phase-1"></div>
+      <div class="tl-label phase-1">Phase 1 — Hardware Basis</div>
+      <div class="tl-head">LoRaWAN Sensor Network (Reference Architecture)</div>
+      <div class="tl-body">
+        Custom circuit for single panel; using HCPL-7840 optical isolation amplifier for DC 
+        voltage (0-50V, 99.5% accuracy), Hall-effect current sensor CYCT03-L20 (97.1%), PT100 RTD with MAX31865 
+        (98.7%), ADS1115 to convert analog voltage to digital logic-level. ESP32-S3 used as the primary microcontroller. 
+        LoRaWAN uplink via SX1278 + antenna setup for 1 km range. Self-powered from 12V 2Ah lead-acid with solar charge 
+        controller. Total node power: 0.5-0.8 W.
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot phase-2"></div>
+      <div class="tl-label phase-2">Phase 2 — PVGIS Data Foundation</div>
+      <div class="tl-head">ERA5 Weather Baseline + 10-City TMY Integration</div>
+      <div class="tl-body">
+        Tested with Typical Meteorological Year data for 10 major Indian cities.
+        Per-city optimal tilt and azimuth fetched from <code>PVGIS-ERA5</code> at startup.
+        Horizon obstruction profiles loaded from city-named CSVs and injected as <code>userhorizon</code> params.
+        Lookup table indexed by <code>(month, hour)</code>: mean power kW, P10, P90, mean irradiance W/m², mean temp.
+        Background thread ingests today's intraday data every 5 minutes via ERA5 historical endpoint.
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot phase-3"></div>
+      <div class="tl-label phase-3">Phase 3 — Physics-Based Simulation</div>
+      <div class="tl-head">Single-Diode PV Model with NOCT Thermal Correction</div>
+      <div class="tl-body">
+        Wrote the bespoke physics-based simulator around electrical models:
+        System: 15 strings × 22 modules (100 kWp, c-Si, V<sub>OC</sub>=880V, I<sub>SC</sub>=147A).
+        Cell temperature via NOCT model: <code>T_cell = T_amb + (NOCT-20) × G/800</code>.
+        I<sub>SC</sub> scales linearly with G and has a positive temperature coefficient (+0.05%/°C).
+        V<sub>OC</sub> is logarithmic in G with a strong negative temperature coefficient (-0.32%/°C).
+        Each fault mode modifies I<sub>SC</sub>, V<sub>OC</sub>, and fill factor independently per its electrical signature.
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot phase-4"></div>
+      <div class="tl-label phase-4">Phase 4 — Anomaly Detection</div>
+      <div class="tl-head">K-Means + Physics-Based Fault Classifier</div>
+      <div class="tl-body">
+        7-dimensional feature vector: normalised power, cyclic hour encoding (sin/cos), V<sub>OC</sub>/V<sub>OC,SYS</sub>,
+        I<sub>SC</sub>/I<sub>SC,SYS</sub>, G/G<sub>ref</sub>, and V<sub>OC</sub>-to-I<sub>SC</sub> ratio (distinguishes bypass from string faults).
+        K-Means (k=8) trained on 14+ days of bootstrapped intraday data.
+        Anomaly score = z-score of distance to nearest centroid, threshold 1.5σ.
+        Physics-based classifier reads which electrical parameters changed to identify fault type,
+        rather than relying on output power alone.
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── ARCHITECTURE ── -->
+  <div class="section-label">System Design</div>
+  <h2>Architecture</h2>
+
+  <p>
+    The server has four modules: a physics simulator generating synthetic readings from ERA5 weather,
+    a PVGIS client managing the TMY baseline and city lookups, a K-Means anomaly detection pipeline,
+    and a Flask REST API serving a browser dashboard. All city PVGIS data is pre-cached at startup
+    in parallel threads.
+  </p>
+
+  <div class="arch-diagram">
+    <div class="arch-row" style="flex-wrap:wrap; gap:16px; justify-content:center;">
+      <div class="arch-col">
+        <div class="arch-node pvgis">
+          <div class="a-title">PVGIS-ERA5</div>
+          <div class="a-sub">JRC · TMY + hourly</div>
+        </div>
+        <div class="arch-label">10 cities, cached at startup</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-col">
+        <div class="arch-node sim">
+          <div class="a-title">simulator.py</div>
+          <div class="a-sub">single-diode + NOCT</div>
+        </div>
+        <div class="arch-label">5-min intraday readings</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-col">
+        <div class="arch-node pipeline">
+          <div class="a-title">pipeline.py</div>
+          <div class="a-sub">K-Means · 7D features</div>
+        </div>
+        <div class="arch-label">anomaly score + fault label</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-col">
+        <div class="arch-node flask">
+          <div class="a-title">app.py</div>
+          <div class="a-sub">Flask REST API</div>
+        </div>
+        <div class="arch-label">10 endpoints</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-col">
+        <div class="arch-node dash">
+          <div class="a-title">dashboard.html</div>
+          <div class="a-sub">Chart.js · live sliders</div>
+        </div>
+        <div class="arch-label">polls every 60 s</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── 10 CITIES ── -->
+  <div class="section-label">Multi-City Support</div>
+  <h2>10 Indian Cities — Per-City PVGIS Calibration</h2>
+
+  <p>
+    Each city has its own TMY lookup table, optimal tilt/azimuth from PVGIS, and horizon obstruction
+    profile from field-measured CSV files. Switching cities via the dashboard dropdown updates all
+    live readings, baseline, and simulation estimates.
+  </p>
+
+  <div class="city-grid">
+    <div class="city-pill"><div class="city-name">Ahmedabad</div><div class="city-state">Gujarat</div><div class="city-tilt">28° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Delhi</div><div class="city-state">Delhi</div><div class="city-tilt">32° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Mumbai</div><div class="city-state">Maharashtra</div><div class="city-tilt">22° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Chennai</div><div class="city-state">Tamil Nadu</div><div class="city-tilt">16° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Bangalore</div><div class="city-state">Karnataka</div><div class="city-tilt">17° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Kolkata</div><div class="city-state">West Bengal</div><div class="city-tilt">27° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Hyderabad</div><div class="city-state">Telangana</div><div class="city-tilt">20° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Pune</div><div class="city-state">Maharashtra</div><div class="city-tilt">21° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Jaipur</div><div class="city-state">Rajasthan</div><div class="city-tilt">30° tilt</div></div>
+    <div class="city-pill"><div class="city-name">Bhubaneswar</div><div class="city-state">Odisha</div><div class="city-tilt">25° tilt</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── FAULT CLASSIFIER ── -->
+  <div class="section-label">Fault Detection</div>
+  <h2>Physics-Based Fault Classifier</h2>
+
+  <p>
+    Most anomaly detection approaches flag deviations in output power and call the result a "fault."
+    Our system goes further: each injected fault mode has a distinct electrical fingerprint
+    derived from PV cell physics, and the classifier reads I<sub>SC</sub>, V<sub>OC</sub>, and fill factor independently
+    to identify which mechanism failed.
+  </p>
+
+  <table class="fault-table">
+    <tr>
+      <th>Fault Mode</th>
+      <th>Isc</th>
+      <th>Voc</th>
+      <th>FF</th>
+      <th>Physical mechanism</th>
+    </tr>
+    <tr>
+      <td>String Anomaly</td>
+      <td class="isc-drop">-17% (3 of 15 strings)</td>
+      <td class="ok">stable</td>
+      <td class="ok">stable</td>
+      <td>3 strings at 15% Isc (shading/mismatch). Parallel bus holds V<sub>OC</sub>. I<sub>SC</sub> = (12 + 0.45)/15.</td>
+    </tr>
+    <tr>
+      <td>Bypass Diode</td>
+      <td class="ok">+2% (lower Rs)</td>
+      <td class="voc-drop">-1.3% system-level</td>
+      <td class="isc-drop">-4%</td>
+      <td>8 modules with one shorted bypass diode (1/3 cells bypassed). Faulty string: 22×40 - 8×(40/3) = 773V vs 880V. System V<sub>OC</sub> averaged across 15 strings: (14×880 + 773)/15 = 869V.</td>
+    </tr>
+    <tr>
+      <td>Module Fault</td>
+      <td class="isc-drop">-20% (3 strings open)</td>
+      <td class="voc-drop">-3%</td>
+      <td class="isc-drop">-5%</td>
+      <td>3 strings open-circuit (combiner box failure). I<sub>SC</sub> = 12/15. Both I<sub>SC</sub> and V<sub>OC</sub> depressed.</td>
+    </tr>
+    <tr>
+      <td>Ground Fault</td>
+      <td class="isc-drop">-7%</td>
+      <td class="ok">-1% (stable)</td>
+      <td class="isc-drop">-7%</td>
+      <td>Insulation leakage: shunt path to ground lowers effective R<sub>SH</sub>, degrades I<sub>SC</sub> and FF. V<sub>OC</sub> roughly stable.</td>
+    </tr>
+    <tr>
+      <td>Gradual Degradation</td>
+      <td class="isc-drop">-1.5%</td>
+      <td class="voc-drop">-0.3%</td>
+      <td class="isc-drop">-1.2%</td>
+      <td>EVA yellowing (I<sub>SC</sub>), metallisation corrosion + microcracking (FF). ~1.5%/yr diffuse decline.</td>
+    </tr>
+  </table>
+
+  <h3>Classifier decision logic</h3>
+
+  <div class="decision-block">
+    <div class="d-label">Physics-corrected normalisation — weather independent</div>
+    Observed I<sub>SC</sub>, V<sub>OC</sub>, and FF are each divided by the healthy expected value at the reading's
+    actual irradiance and cell temperature (from the same single-diode equations used by the simulator).
+    A fault-free panel reads ~1.0 on all three at any weather condition:<br><br>
+    <span class="eq">norm_i  = Isc_obs / Isc_exp(G, T_cell)</span><br>
+    <span class="eq">norm_v  = Voc_obs / Voc_exp(G, T_cell)</span><br>
+    <span class="eq">norm_ff = FF_obs  / FF_exp(T_cell)</span><br><br>
+    Decision tree (evaluated in order):<br>
+    <span class="warn">norm_i &lt; 0.85 AND norm_v &lt; 0.985</span> → Module Fault (strings lost — both I<sub>SC</sub> and V<sub>OC</sub> depressed)<br>
+    <span class="warn">norm_i &lt; 0.90 AND norm_v ≥ 0.985</span> → String Anomaly (current mismatch, V<sub>OC</sub> held by bus)<br>
+    <span class="warn">norm_ff &lt; 0.98 AND norm_i ≥ 0.97</span> → Bypass Diode (FF drops, I<sub>SC</sub> normal/elevated)<br>
+    <span class="warn">norm_ff &lt; 0.97 AND norm_i &lt; 0.97</span> → Ground Fault (leakage: moderate I<sub>SC</sub> + FF loss)<br>
+    otherwise → Gradual Degradation (diffuse, no dominant parameter signature)
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── PIPELINE ── -->
+  <div class="section-label">ML Pipeline</div>
+  <h2>K-Means Anomaly Detection</h2>
+
+  <p>
+    The pipeline bootstraps on 14 days of intraday data before activating. Once trained,
+    every new reading is scored as a z-score of its distance to the nearest cluster centroid,
+    normalised by that cluster's standard deviation. Scores above 1.5σ trigger the fault
+    classifier. The model persists to disk between restarts.
+  </p>
+
+  <div class="frag-grid">
+    <div class="frag-card">
+      <div class="frag-idx">Features — 7D</div>
+      <div class="frag-title">Feature Vector</div>
+      <div class="frag-body">
+        <code>norm_power</code>: P/P_nameplate<br>
+        <code>hour_sin, hour_cos</code>: cyclic time encoding<br>
+        <code>norm_voltage</code>: Voc/Voc_exp(G,T); ~1.0 healthy<br>
+        <code>norm_current</code>: Isc/Isc_exp(G,T); ~1.0 healthy<br>
+        <code>norm_irr</code>: G/G_ref<br>
+        <code>voc_isc_ratio</code>: norm_v/norm_i; separates bypass (V<sub>OC</sub> drops) from string (I<sub>SC</sub> drops)
+      </div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Model</div>
+      <div class="frag-title">K-Means (k=8)</div>
+      <div class="frag-body">
+        StandardScaler with per-feature std floor of 0.05; without it, norm_voltage/current/ratio
+        (which are ~constant at 1.0 for a healthy array) have near-zero variance and the scaler
+        divides by ~0, exploding fault deviations to hundreds of sigma.
+        k-means++ initialisation, 10 restarts. Per-cluster distance stats computed post-fit.
+        Anomaly score clamped to 0 minimum. Each city saves to its own
+        <code>pipeline_state_{city}.pkl</code>: city-specific clusters, identical methodology.
+      </div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Data</div>
+      <div class="frag-title">Ingestion</div>
+      <div class="frag-body">
+        5-minute readings from the simulator, enriched with PVGIS expected output and performance gap.
+        Background thread polls every 5 minutes. <code>/api/ingest</code> endpoint allows manual
+        bootstrap of 30 days in one call. Night readings (G &lt; 10 W/m² or power = 0) are excluded
+        from training and scoring.
+      </div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Scoring</div>
+      <div class="frag-title">Anomaly Score</div>
+      <div class="frag-body">
+        z = max((dist - cluster_mean) / cluster_std, 0.0)<br>
+        Threshold 1.5σ triggers fault classification. Score displayed live on the dashboard
+        with a colour-coded bar (green/amber/red) and a 1.5σ threshold line on the intraday chart.
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── REST API ── -->
+  <div class="section-label">Interface</div>
+  <h2>REST API</h2>
+
+  <table class="api-table">
+    <tr>
+      <th>Method</th>
+      <th>Endpoint</th>
+      <th>Description</th>
+    </tr>
+    <tr><td>GET</td><td>/api/status</td><td>Latest reading, anomaly score, PVGIS gap, per-city tilt/azimuth, active fault mode</td></tr>
+    <tr><td>GET</td><td>/api/history</td><td>N-day daily output history (default 30, max 365)</td></tr>
+    <tr><td>GET</td><td>/api/intraday</td><td>5-min readings for a date, enriched with anomaly score and PVGIS expected</td></tr>
+    <tr><td>GET</td><td>/api/baseline</td><td>Hourly TMY expected output for a given month</td></tr>
+    <tr><td>GET</td><td>/api/pipeline</td><td>Pipeline training state, history count, cluster count, bootstrap progress</td></tr>
+    <tr><td>GET</td><td>/api/cities</td><td>All 10 cities with lat/lon, PVGIS tilt/azimuth, and cache status</td></tr>
+    <tr><td>POST</td><td>/api/location</td><td>Switch active city</td></tr>
+    <tr><td>POST</td><td>/api/fault</td><td>Inject fault mode for demo: none / string_anomaly / bypass_diode / module_fault / gradual_degradation</td></tr>
+    <tr><td>POST</td><td>/api/simulate</td><td>Estimate annual yield, PR, CO₂ for custom peak_kw and loss_pct — scales from cached TMY</td></tr>
+    <tr><td>POST</td><td>/api/ingest</td><td>Manual bootstrap: ingest and retrain on last N days</td></tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- ── DASHBOARD FEATURES ── -->
+  <div class="section-label">Dashboard</div>
+  <h2>Live Web Dashboard</h2>
+
+  <p>
+    Single-page dashboard served by Flask. Polls <code>/api/status</code> and <code>/api/intraday</code>
+    every 60 seconds. All power values scale instantly with the peak power and system loss sliders
+    client-side — no server round-trip required.
+  </p>
+
+  <div class="frag-grid">
+    <div class="frag-card">
+      <div class="frag-idx">Stat Cards</div>
+      <div class="frag-title">Live Readings</div>
+      <div class="frag-body">Power (kW), PVGIS Expected (kW) with % gap, Anomaly Score (σ, colour-coded), Energy Today (kWh). All scale with the slider.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Charts</div>
+      <div class="frag-title">Intraday Plots</div>
+      <div class="frag-body">Power measured vs PVGIS TMY mean (dotted) for today. Anomaly score time-series with 1.5σ threshold line. Both update on city switch.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Validation Panel</div>
+      <div class="frag-title">PVGIS Comparison</div>
+      <div class="frag-body">Measured vs expected (mean, P10-P90 range), gap in kW and %, underperformance flag, DC Voc, Isc, irradiance, cell temperature, fill factor.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">System Panel</div>
+      <div class="frag-title">Live Reconfig</div>
+      <div class="frag-body">Peak power (10-500 kWp) and system loss (5-30%) sliders rescale all displayed values in real time. Annual yield, performance ratio, Annual POA irradiance, and CO₂ avoided update after a 400ms debounce.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── RESULTS ── -->
+  <div class="section-label">Results</div>
+  <h2>Key Numbers</h2>
+
+  <div class="result-row">
+    <div class="result-pill">
+      <div class="rp-label">Cities</div>
+      <div class="rp-val teal">10</div>
+      <div class="rp-sub">Indian cities, PVGIS calibrated</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">System Scale</div>
+      <div class="rp-val amber">100 kWp</div>
+      <div class="rp-sub">c-Si · 15s × 22p · 880V</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Feature Dims</div>
+      <div class="rp-val blue">7D</div>
+      <div class="rp-sub">K-Means anomaly vector</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Fault Modes</div>
+      <div class="rp-val green">5</div>
+      <div class="rp-sub">physics-grounded signatures</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">API Endpoints</div>
+      <div class="rp-val blue">10</div>
+      <div class="rp-sub">REST · Flask</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Award</div>
+      <div class="rp-val amber">2nd</div>
+      <div class="rp-sub">GENESIS 2025 · BVCOE Mumbai</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── TOOLCHAIN ── -->
+  <div class="section-label">Toolchain</div>
+  <h2>Stack</h2>
+
+  <div class="tc-grid">
+    <div class="tc-item"><div class="tc-name">PVGIS-ERA5 (JRC)</div><div class="tc-desc">TMY baseline, hourly historical data, optimal tilt API</div></div>
+    <div class="tc-item"><div class="tc-name">scikit-learn</div><div class="tc-desc">K-Means clustering, StandardScaler, K-Means++ init</div></div>
+    <div class="tc-item"><div class="tc-name">NumPy</div><div class="tc-desc">Feature engineering, distance computation, z-scoring</div></div>
+    <div class="tc-item"><div class="tc-name">Flask</div><div class="tc-desc">REST API server, Jinja2 template rendering</div></div>
+    <div class="tc-item"><div class="tc-name">Chart.js 4.4</div><div class="tc-desc">Power and anomaly intraday charts with dataset toggling</div></div>
+    <div class="tc-item"><div class="tc-name">ESP32 + LoRa</div><div class="tc-desc">Hardware sensor layer (reference architecture from paper)</div></div>
+    <div class="tc-item"><div class="tc-name">ESP-NOW</div><div class="tc-desc">2.4GHz connectionless mesh between sensor nodes</div></div>
+    <div class="tc-item"><div class="tc-name">pickle</div><div class="tc-desc">Pipeline persistence across server restarts</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── REFERENCE ── -->
+  <div class="section-label">Reference Paper</div>
+  <h2>Basis</h2>
+
+  <div class="citation-box">
+    <div class="c-label">IEEE Citation</div>
+    Q. Ziyuan, D. R. Thinesh, V. Ayyalusamy, B. Sivaneasan, K. T. Tan and K. J. Tseng,
+    "A LoRaWAN based Solar PV Condition Monitoring System,"
+    <em>2022 IEEE International Conference on Power Electronics, Drives and Energy Systems (PEDES)</em>,
+    Jaipur, India, 2022. DOI: 10.1109/PEDES56012.2022.10080221
+  </div>
+
+  <div class="citation-box">
+    <div class="c-label">IEEE Citation</div>
+     B. H. Hameed and S. Kurnaz, "Secure Low-Cost Photovoltaic Monitoring System
+     Based on LoRaWAN Network and Artificial Intelligence, "Discover Computing, vol. 
+     27,no. 36, 2024, doi: 10.1007/s10791-024-09475-0.
+  </div>
+
+
+</div><!-- /page -->
+
+<script>
+  if (window.self !== window.top) {
+    document.getElementById('close-btn').style.display = 'block';
+  }
+</script>
+</body>
+</html>

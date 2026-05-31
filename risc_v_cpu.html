@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RVCore — RV32I Single-Cycle CPU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #0a0a0c;
+    --bg2:        #0f0f12;
+    --bg3:        #141418;
+    --border:     #1e1e24;
+    --border-hi:  #2a2a33;
+    --text:       #e8e8f0;
+    --text-dim:   #8888a0;
+    --text-faint: #6a6a85;
+    --accent:     #7eb8f7;
+    --accent2:    #5a9de8;
+    --green:      #6bcb8b;
+    --amber:      #f0b44a;
+    --red:        #e05c5c;
+    --purple:     #b48ef7;
+    --mono:       'IBM Plex Mono', monospace;
+    --sans:       'Inter', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.7; min-height: 100vh; }
+
+  #close-btn {
+    display: none; position: fixed; top: 16px; right: 20px; z-index: 100;
+    background: rgba(15,15,18,.9); backdrop-filter: blur(8px);
+    border: 1px solid var(--border-hi); color: var(--text-dim);
+    font-family: var(--mono); font-size: 12px; letter-spacing: .08em;
+    padding: 7px 14px; cursor: pointer; border-radius: 4px; transition: border-color .15s, color .15s;
+  }
+  #close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .page { max-width: 880px; margin: 0 auto; padding: 60px 32px 100px; }
+
+  /* ── TYPE ── */
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; margin-bottom: 14px; }
+  .hero-title { font-family: var(--mono); font-size: clamp(22px,4vw,36px); font-weight: 500; line-height: 1.2; margin-bottom: 8px; }
+  .hero-title span { color: var(--accent); }
+  .hero-sub { font-family: var(--mono); font-size: 13px; color: var(--text-dim); letter-spacing: .04em; margin-bottom: 28px; }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 44px; }
+  .htag { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; padding: 4px 10px; border-radius: 3px; border: 1px solid; }
+  .htag.hw { color: var(--amber);  border-color: rgba(240,180,74,.25);  background: rgba(240,180,74,.06); }
+  .htag.sw { color: var(--accent); border-color: rgba(126,184,247,.25); background: rgba(126,184,247,.06); }
+  .htag.ai { color: var(--green);  border-color: rgba(107,203,139,.25); background: rgba(107,203,139,.06); }
+  .htag.pu { color: var(--purple); border-color: rgba(180,142,247,.25); background: rgba(180,142,247,.06); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
+  .section-label { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 18px; }
+  h2 { font-family: var(--mono); font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 14px; }
+  h3 { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); letter-spacing: .06em; margin: 28px 0 10px; }
+  p { color: var(--text-dim); margin-bottom: 14px; font-size: 14.5px; }
+  p strong { color: var(--text); font-weight: 500; }
+  code { font-family: var(--mono); font-size: 12px; color: var(--amber); background: rgba(240,180,74,.08); padding: 1px 5px; border-radius: 2px; }
+
+  /* ── DATAPATH DIAGRAM ── */
+  .datapath {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 24px 24px;
+    margin: 20px 0 32px;
+    overflow-x: auto;
+  }
+  .dp-label { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 20px; }
+
+  .dp-grid {
+    display: grid;
+    grid-template-columns: 90px 120px 120px 120px 120px 90px;
+    grid-template-rows: auto auto auto auto auto;
+    gap: 10px 0;
+    min-width: 600px;
+    align-items: center;
+    justify-items: center;
+    position: relative;
+  }
+
+  .dp-box {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: center;
+    padding: 9px 12px;
+    border-radius: 5px;
+    border: 1px solid;
+    line-height: 1.4;
+    width: 100px;
+    position: relative;
+    z-index: 2;
+  }
+  .dp-box.blue   { color: var(--accent); border-color: rgba(126,184,247,.35); background: rgba(126,184,247,.07); }
+  .dp-box.green  { color: var(--green);  border-color: rgba(107,203,139,.35); background: rgba(107,203,139,.07); }
+  .dp-box.amber  { color: var(--amber);  border-color: rgba(240,180,74,.35);  background: rgba(240,180,74,.07);  }
+  .dp-box.purple { color: var(--purple); border-color: rgba(180,142,247,.35); background: rgba(180,142,247,.07); }
+  .dp-box.dim    { color: var(--text-dim); border-color: var(--border-hi); background: var(--bg3); }
+  .dp-sub { font-size: 9px; color: var(--text-faint); margin-top: 3px; }
+
+  .dp-arrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+  }
+  .dp-signal {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-faint);
+    letter-spacing: .04em;
+    text-align: center;
+  }
+
+  /* ── MODULE CARDS ── */
+  .mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin: 20px 0; }
+  .mod-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; transition: border-color .15s; }
+  .mod-card:hover { border-color: var(--border-hi); }
+  .mod-file { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--text-faint); margin-bottom: 5px; }
+  .mod-name { font-family: var(--mono); font-size: 13px; margin-bottom: 8px; }
+  .mod-name.blue   { color: var(--accent); }
+  .mod-name.green  { color: var(--green); }
+  .mod-name.amber  { color: var(--amber); }
+  .mod-name.purple { color: var(--purple); }
+  .mod-body { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+  /* ── ISA TABLE ── */
+  .isa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 8px; margin: 16px 0; }
+  .isa-cell {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 4px;
+    padding: 9px 12px; font-family: var(--mono); font-size: 11px;
+  }
+  .isa-type { color: var(--text-faint); font-size: 10px; letter-spacing: .1em; margin-bottom: 4px; }
+  .isa-instrs { color: var(--text-dim); line-height: 1.7; }
+  .isa-instrs code { font-size: 11px; }
+
+  /* ── VERIFICATION SECTION ── */
+  .tb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; margin: 16px 0; }
+  .tb-card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .tb-mod  { color: var(--text); margin-bottom: 3px; }
+  .tb-file { color: var(--text-faint); font-size: 10.5px; margin-bottom: 6px; }
+  .tb-tag  { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 2px; border: 1px solid; }
+  .tb-tag.pass { color: var(--green); border-color: rgba(107,203,139,.3); background: rgba(107,203,139,.07); }
+
+  pre {
+    background: var(--bg3); border: 1px solid var(--border); border-left: 3px solid var(--accent2);
+    border-radius: 4px; padding: 18px 20px; overflow-x: auto; margin: 16px 0 20px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6; color: var(--text-dim);
+  }
+  pre .kw  { color: var(--accent); }
+  pre .fn  { color: var(--purple); }
+  pre .num { color: var(--amber); }
+  pre .cmt { color: var(--text-faint); font-style: italic; }
+  pre .str { color: var(--green); }
+
+  /* ── CALCULATOR CTA ── */
+  .calc-cta {
+    background: var(--bg2);
+    border: 1px solid var(--accent2);
+    border-radius: 8px;
+    padding: 32px 36px;
+    margin: 24px 0;
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    box-shadow: 0 0 40px rgba(90,157,232,.06);
+  }
+  .calc-cta-text { flex: 1; }
+  .calc-cta-label { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--accent2); text-transform: uppercase; margin-bottom: 10px; }
+  .calc-cta-title { font-family: var(--mono); font-size: 18px; color: var(--text); margin-bottom: 10px; }
+  .calc-cta-desc { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+  .calc-btn {
+    flex-shrink: 0;
+    font-family: var(--mono); font-size: 13px; letter-spacing: .06em;
+    color: var(--bg); background: var(--accent);
+    border: none; border-radius: 5px; padding: 14px 24px;
+    cursor: pointer; transition: background .15s, transform .1s;
+    white-space: nowrap;
+  }
+  .calc-btn:hover { background: #9ecfff; }
+  .calc-btn:active { transform: scale(.96); }
+
+  /* ── RESULT PILLS ── */
+  .result-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+  .result-pill { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 14px 20px; min-width: 140px; }
+  .rp-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 6px; }
+  .rp-val   { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1; }
+  .rp-sub   { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+  /* ── TOOLCHAIN ── */
+  .tc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr)); gap: 10px; margin: 16px 0; }
+  .tc-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; font-family: var(--mono); font-size: 12px; }
+  .tc-name { color: var(--text); margin-bottom: 3px; }
+  .tc-desc { color: var(--text-faint); font-size: 11px; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .page { padding: 40px 20px 80px; }
+    .calc-cta { flex-direction: column; padding: 24px 20px; }
+    .calc-btn { width: 100%; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<button id="close-btn" onclick="window.parent.postMessage('closeCPU','*')">✕ &nbsp;CLOSE</button>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="eyebrow">Computer Architecture · RTL Design</div>
+  <div class="hero-title">RVCore — <span>RV32I</span> Single-Cycle CPU</div>
+  <div class="hero-sub">Full RISC-V base ISA &nbsp;·&nbsp; SystemVerilog RTL &nbsp;·&nbsp; Verified per-module &nbsp;·&nbsp; Yosys synthesized</div>
+  <div class="hero-tags">
+    <span class="htag hw">SystemVerilog</span>
+    <span class="htag hw">RISC-V ISA</span>
+    <span class="htag sw">Cocotb</span>
+    <span class="htag sw">Verilator</span>
+    <span class="htag sw">Yosys</span>
+    <span class="htag pu">RTL</span>
+    <span class="htag ai">Live Calculator Demo (check below)</span>
+  </div>
+  <div style="margin-bottom:32px;">
+    <a href="https://github.com/GreaseMonkeyIT/RVCore" target="_blank"
+       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(126,184,247,.04);transition:border-color .15s,color .15s;"
+       onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+       onmouseout="this.style.borderColor='var(--border-hi)';this.style.color='var(--text-dim)'">
+      ↗ &nbsp;VIEW ON GITHUB
+    </a>
+  </div>
+
+  <hr class="divider">
+
+  <!-- OVERVIEW -->
+  <div class="section-label">Overview</div>
+  <h2>A Full RISC-V Core, Built from First Principles</h2>
+  <p>
+    A complete <strong>RV32I single-cycle processor</strong> implemented in SystemVerilog at the Register-Transfer Level.
+    Every logic block: ALU, control unit, register file, sign extender, memory interface, load/store decoder,
+    and reader; was written, simulated, and verified independently before assembly into the full datapath.
+  </p>
+  <p>
+    This was built following the <strong>Holy Core</strong> open-source RISC-V tutorial by BRH(GitHub:0BAB1), with an extended
+    implementation adding full branch support, all jump types (JAL/JALR), LUI, AUIPC, and byte/halfword
+    memory access. The design was synthesized with <strong>Yosys</strong> and the resulting netlist verified
+    against the simulation model.
+  </p>
+
+  <div class="result-row">
+    <div class="result-pill">
+      <div class="rp-label">ISA</div>
+      <div class="rp-val" style="color:var(--accent)">RV32I</div>
+      <div class="rp-sub">full base integer</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Modules</div>
+      <div class="rp-val" style="color:var(--green)">8</div>
+      <div class="rp-sub">each tested independently</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Testbenches</div>
+      <div class="rp-val" style="color:var(--amber)">7</div>
+      <div class="rp-sub">Cocotb + Verilator</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Synthesis</div>
+      <div class="rp-val" style="color:var(--purple)">Yosys</div>
+      <div class="rp-sub">netlist generated</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- INTRO -->
+  <div class="section-label">A Brief Introduction</div>
+  <h2>What is a Single-Cycle Processor?</h2>
+  <p>A single-cycle processor is a CPU architecture that executes an entire machine instruction in 
+  exactly one clock cycle. Unlike the processor powering your laptop or smartphone—which relies on 
+  complex features like pipelining to juggle multiple tasks simultaneously for maximum speed; a 
+  single-cycle core completes just one instruction at a time. It fetches the instruction, performs the 
+  necessary calculations, and saves the result in one continuous, uninterrupted sweep before the clock 
+  ticks again. The datapath is entirely combinational from fetch to write-back, with only the Program 
+  Counter (PC) and the register file being clocked.</p>
+
+  <p>While you wouldn't use this design to run a modern operating system, it is the essential starting
+  point for computer architecture because it strips away overwhelming complexity to reveal exactly 
+  how hardware routes data and makes decisions. Beyond acting as a foundational proof of concept, this 
+  architecture still holds real-world value today. Because it is so straightforward, it is still ideal 
+  for prototyping and learning devices like digital calculators and simple embedded controllers.</p>
+ 
+  <hr class="divider">
+
+  <!-- ARCHITECTURE -->
+  <div class="section-label">Datapath Architecture</div>
+  <h2>Single-Cycle RTL Netlist</h2>
+  <p>Every instruction completes in one clock cycle. The datapath is combinational from fetch to write-back,
+  with only the PC register clocked. The diagram below is the <strong>RTL netlist</strong> synthesized
+  from the SystemVerilog source via <code>yosys proc</code> + <code>netlistsvg</code>.</p>
+
+  <div class="datapath" style="padding:14px 16px 12px;">
+    <div class="dp-label" style="margin-bottom:14px;">
+      RTL netlist — yosys proc · netlistsvg
+      <span style="margin-left:14px; font-size:9px; opacity:.75; font-weight:normal;">
+        <span style="color:#7eb8f7;">━</span> signals &nbsp;·&nbsp;
+        <span style="color:#4ade80;">◆</span> muxes &nbsp;·&nbsp;
+        <span style="color:#f0a82a;">●</span> adders &nbsp;·&nbsp;
+        <span style="color:#a78bfa;">▪</span> DFF / PC reg &nbsp;·&nbsp;
+        <span style="color:#a0c4e8;">□</span> submodule instances
+      </span>
+    </div>
+    <div style="border-radius:8px; background:#0a0a0c; overflow:hidden; line-height:0;">
+      <img src="cpu_netlist.svg"
+           alt="RVCore RTL netlist — Yosys + netlistsvg"
+           style="width:100%; height:auto; display:block;"
+           draggable="false">
+    </div>
+    <div style="font-family:var(--mono); font-size:9px; color:#8b9aaa; text-align:center; margin-top:8px;">
+      generated from <code>cpu_flat.v</code> via <code>sv2v</code> · <code>yosys proc</code> · <code>netlistsvg</code>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- MODULES -->
+  <div class="section-label">Module Breakdown</div>
+  <h2>8 Independent Blocks</h2>
+
+  <div class="mod-grid">
+    <div class="mod-card">
+      <div class="mod-file">src/control.sv</div>
+      <div class="mod-name blue">Control Unit</div>
+      <div class="mod-body">Decodes <code>op</code>, <code>f3</code>, <code>f7</code> and the ALU flags into 8 control signals:
+      <code>alu_control</code> (4-bit), <code>imm_source</code> (3-bit), <code>mem_write</code>, <code>reg_write</code>,
+      <code>alu_source</code>, <code>write_back_source</code> (2-bit), <code>pc_source</code>, <code>second_add_source</code> (2-bit).
+      Handles all RV32I branch conditions and jump types.</div>
+    </div>
+
+    <div class="mod-card">
+      <div class="mod-file">src/alu.sv</div>
+      <div class="mod-name amber">ALU</div>
+      <div class="mod-body">4-bit control word selects ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU.
+      Outputs 32-bit result plus <code>zero</code> flag (for BEQ/BNE) and <code>last_bit</code>
+      (for BLT/BGE/SLTI/SLTIU). Fully combinational.</div>
+    </div>
+
+    <div class="mod-card">
+      <div class="mod-file">src/regfile.sv</div>
+      <div class="mod-name green">Register File</div>
+      <div class="mod-body">32 × 32-bit registers, x0 hardwired to zero. Two asynchronous read ports (<code>rs1</code>, <code>rs2</code>),
+      one synchronous write port (<code>rd</code>). Write-enable gated by both <code>reg_write</code>
+      and <code>wb_valid</code> from the reader.</div>
+    </div>
+
+    <div class="mod-card">
+      <div class="mod-file">src/signext.sv</div>
+      <div class="mod-name purple">Sign Extender</div>
+      <div class="mod-body">3-bit <code>imm_source</code> selects immediate format: I-type (12-bit), S-type (store offset),
+      B-type (branch target), J-type (JAL offset), U-type (LUI/AUIPC upper 20 bits).
+      All sign-extended to 32 bits.</div>
+    </div>
+
+    <div class="mod-card">
+      <div class="mod-file">src/memory.sv</div>
+      <div class="mod-name blue">Memory</div>
+      <div class="mod-body">Parametric word-addressed memory with <code>byte_enable[3:0]</code> for sub-word writes.
+      Used twice: as instruction ROM (write-enable tied low, init from <code>.hex</code>)
+      and as data RAM. Misaligned access triggers <code>$fatal</code>.</div>
+    </div>
+
+    <div class="mod-card">
+      <div class="mod-file">src/load_store_decoder.sv</div>
+      <div class="mod-name amber">Load/Store Decoder</div>
+      <div class="mod-body">Takes ALU result address and <code>f3</code> to compute the <code>byte_enable</code> mask
+      and correctly-aligned write data for <code>sb</code>, <code>sh</code>, and <code>sw</code> stores.
+      Handles byte-lane shifting for sub-word stores.</div>
+    </div>
+
+    <div class="mod-card">
+      <div class="mod-file">src/reader.sv</div>
+      <div class="mod-name green">Reader</div>
+      <div class="mod-body">Extracts and sign-extends loaded data from the raw 32-bit memory word.
+      Handles <code>lb</code> (sign-extended byte), <code>lbu</code> (unsigned byte), <code>lh</code>,
+      <code>lhu</code>, and <code>lw</code>. Outputs <code>valid</code> to gate the write-back.</div>
+    </div>
+
+    <div class="mod-card">
+      <div class="mod-file">src/cpu.sv</div>
+      <div class="mod-name blue">Top Level — cpu</div>
+      <div class="mod-body">Wires all modules together. Contains the PC register and the four muxes:
+      ALU source, write-back source (4-way), PC source (branch/jump), and second-adder source
+      (PC-relative branches, absolute jumps, JALR, AUIPC).</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ISA COVERAGE -->
+  <div class="section-label">ISA Coverage</div>
+  <h2>Full RV32I Base Integer Instruction Set</h2>
+
+  <div class="isa-grid">
+    <div class="isa-cell">
+      <div class="isa-type">R-TYPE</div>
+      <div class="isa-instrs">
+        <code>add</code> <code>sub</code> <code>and</code> <code>or</code> <code>xor</code>
+        <code>sll</code> <code>srl</code> <code>sra</code> <code>slt</code> <code>sltu</code>
+      </div>
+    </div>
+    <div class="isa-cell">
+      <div class="isa-type">I-TYPE ALU</div>
+      <div class="isa-instrs">
+        <code>addi</code> <code>andi</code> <code>ori</code> <code>xori</code>
+        <code>slli</code> <code>srli</code> <code>srai</code> <code>slti</code> <code>sltiu</code>
+      </div>
+    </div>
+    <div class="isa-cell">
+      <div class="isa-type">LOADS</div>
+      <div class="isa-instrs">
+        <code>lw</code> <code>lh</code> <code>lhu</code> <code>lb</code> <code>lbu</code>
+      </div>
+    </div>
+    <div class="isa-cell">
+      <div class="isa-type">STORES</div>
+      <div class="isa-instrs">
+        <code>sw</code> <code>sh</code> <code>sb</code>
+      </div>
+    </div>
+    <div class="isa-cell">
+      <div class="isa-type">BRANCHES</div>
+      <div class="isa-instrs">
+        <code>beq</code> <code>bne</code> <code>blt</code> <code>bge</code> <code>bltu</code> <code>bgeu</code>
+      </div>
+    </div>
+    <div class="isa-cell">
+      <div class="isa-type">JUMPS / UPPER</div>
+      <div class="isa-instrs">
+        <code>jal</code> <code>jalr</code> <code>lui</code> <code>auipc</code>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- VERIFICATION -->
+  <div class="section-label">Verification</div>
+  <h2>Per-Module Cocotb Testbenches</h2>
+  <p>
+    Each module has its own testbench running under <strong>Cocotb</strong> with <strong>Verilator</strong>
+    as the simulator. This bottom-up approach catches bugs at the unit level: a broken ALU op shows up in 
+    <code>test_alu.py</code>, not buried in a full-CPU simulation trace.
+  </p>
+
+  <div class="tb-grid">
+    <div class="tb-card">
+      <div class="tb-mod">ALU</div>
+      <div class="tb-file">tb/alu/test_alu.py</div>
+      <span class="tb-tag pass">✓ all ops</span>
+    </div>
+    <div class="tb-card">
+      <div class="tb-mod">Control Unit</div>
+      <div class="tb-file">tb/control/test_control.py</div>
+      <span class="tb-tag pass">✓ all opcodes</span>
+    </div>
+    <div class="tb-card">
+      <div class="tb-mod">Register File</div>
+      <div class="tb-file">tb/regfile/test_regfile.py</div>
+      <span class="tb-tag pass">✓ x0 hardwired</span>
+    </div>
+    <div class="tb-card">
+      <div class="tb-mod">Sign Extender</div>
+      <div class="tb-file">tb/signext/test_signext.py</div>
+      <span class="tb-tag pass">✓ I/S/B/J/U</span>
+    </div>
+    <div class="tb-card">
+      <div class="tb-mod">Memory</div>
+      <div class="tb-file">tb/memory/test_memory.py</div>
+      <span class="tb-tag pass">✓ byte_enable</span>
+    </div>
+    <div class="tb-card">
+      <div class="tb-mod">Load/Store Dec.</div>
+      <div class="tb-file">tb/load_store_decoder/</div>
+      <span class="tb-tag pass">✓ sb/sh/sw</span>
+    </div>
+    <div class="tb-card">
+      <div class="tb-mod">Reader</div>
+      <div class="tb-file">tb/reader/test_reader.py</div>
+      <span class="tb-tag pass">✓ lb/lh/lw ±</span>
+    </div>
+    <div class="tb-card">
+      <div class="tb-mod">CPU (integration)</div>
+      <div class="tb-file">tb/cpu/test_cpu.py</div>
+      <span class="tb-tag pass">✓ .hex program</span>
+    </div>
+  </div>
+
+  <h3>Testbench Pattern</h3>
+<pre><span class="cmt"># test_alu.py — per-module Cocotb testbench</span>
+<span class="kw">import</span> cocotb
+<span class="kw">from</span> cocotb.triggers <span class="kw">import</span> Timer
+
+<span class="fn">@cocotb.test</span>()
+<span class="kw">async def</span> <span class="fn">test_add</span>(dut):
+    dut.alu_control.value = <span class="num">0b0000</span>   <span class="cmt"># ADD</span>
+    dut.src1.value        = <span class="num">0x0000_0005</span>
+    dut.src2.value        = <span class="num">0x0000_0003</span>
+    <span class="kw">await</span> Timer(<span class="num">1</span>, units=<span class="str">'ns'</span>)
+    <span class="kw">assert</span> dut.alu_result.value == <span class="num">8</span>
+    <span class="kw">assert</span> dut.zero.value       == <span class="num">0</span></pre>
+
+  <hr class="divider">
+
+  <!-- SYNTHESIS -->
+  <div class="section-label">Synthesis</div>
+  <h2>Yosys RTL Synthesis</h2>
+  <p>
+    The design was synthesized using <strong>Yosys</strong> open-source synthesis suite.
+    <code>sv2v</code> first flattens the SystemVerilog package references into plain Verilog,
+    then <code>yosys proc</code> elaborates the hierarchy — keeping named submodule instances
+    intact rather than resolving to gate primitives. The JSON netlist is then rendered
+    to SVG by <code>netlistsvg</code> and the diagram above is the unmodified output.
+  </p>
+
+<pre><span class="cmt"># 1. Flatten SV packages → plain Verilog</span>
+sv2v packages/holy_core_pkg.sv \
+     src/alu.sv src/control.sv src/regfile.sv \
+     src/signext.sv src/memory.sv \
+     src/load_store_decoder.sv src/reader.sv src/cpu.sv \
+  > cpu_flat.v
+
+<span class="cmt"># 2. Elaborate (proc level — keeps submodule hierarchy)</span>
+yosys -p <span class="str">"read_verilog cpu_flat.v; \
+           hierarchy -check -top cpu; \
+           proc; \
+           write_json cpu_rtl.json"</span>
+
+<span class="cmt"># 3. Render to SVG</span>
+netlistsvg cpu_rtl.json -o cpu_netlist.svg</pre>
+
+  <hr class="divider">
+
+  <!-- CALCULATOR CTA -->
+  <div class="section-label">Interactive Demo</div>
+  <h2>Live RV32IM Emulator</h2>
+  <p>
+    The calculator below runs an <strong>RV32IM JavaScript emulator</strong>.
+    Every keypress assembles real RISC-V instructions, dispatches them through the emulated datapath,
+    and shows the register file and instruction trace updating in real time.
+  </p>
+
+  <div class="calc-cta">
+    <div class="calc-cta-text">
+      <div class="calc-cta-label">Live Demo</div>
+      <div class="calc-cta-title">◈ RV32IM Calculator</div>
+      <div class="calc-cta-desc">
+        Type an arithmetic expression and watch the CPU execute it: register writes, ALU ops,
+        and the full instruction stream, instruction by instruction.
+        Runs entirely in-browser, no server.
+      </div>
+    </div>
+    <button class="calc-btn" onclick="window.parent.postMessage('openCalcFromDetail','*')">
+      Launch Calculator →
+    </button>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TOOLCHAIN -->
+  <div class="section-label">Toolchain</div>
+  <h2>Build Stack</h2>
+  <div class="tc-grid">
+    <div class="tc-item"><div class="tc-name">SystemVerilog</div><div class="tc-desc">RTL implementation language</div></div>
+    <div class="tc-item"><div class="tc-name">Verilator</div><div class="tc-desc">Fast cycle-accurate simulation</div></div>
+    <div class="tc-item"><div class="tc-name">Cocotb</div><div class="tc-desc">Python-based testbench framework</div></div>
+    <div class="tc-item"><div class="tc-name">pytest</div><div class="tc-desc">Test runner, assertion reporting</div></div>
+    <div class="tc-item"><div class="tc-name">Yosys</div><div class="tc-desc">Open-source RTL synthesis + netlist gen</div></div>
+    <div class="tc-item"><div class="tc-name">sv2v</div><div class="tc-desc">SystemVerilog → Verilog flattener</div></div>
+    <div class="tc-item"><div class="tc-name">netlistsvg</div><div class="tc-desc">Schematic SVG from JSON netlist</div></div>
+    <div class="tc-item"><div class="tc-name">Make</div><div class="tc-desc">Per-module build + sim targets</div></div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  if (window.self !== window.top) {
+    document.getElementById('close-btn').style.display = 'block';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Internal dev notes
+SESSION_HANDOFF.md
+DEVLOG.md
+micromouse_colors.md
+microMouse-main/IMPROVEMENTS.md
+
+# LaTeX source
+game_console_display_breakdown.tex
+main_AMD.tex
+
+# Backup files
+NVR_Box-main/nvr_example.webp.bkp
+NVR_Box-main/nvr_example_2.jpg.bkp
+
+# OS
+.DS_Store
+Thumbs.db

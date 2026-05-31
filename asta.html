@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASTA Vision Panel — Founding Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:         #0a0a0c;
+    --bg2:        #0f0f12;
+    --bg3:        #141418;
+    --border:     #1e1e24;
+    --border-hi:  #2a2a33;
+    --text:       #e8e8f0;
+    --text-dim:   #8888a0;
+    --text-faint: #6a6a85;
+    --accent:     #7eb8f7;
+    --accent2:    #5a9de8;
+    --green:      #6bcb8b;
+    --amber:      #f0b44a;
+    --red:        #e05c5c;
+    --teal:       #5bc8c8;
+    --mono:       'IBM Plex Mono', monospace;
+    --sans:       'Inter', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+  #close-btn {
+    display: none;
+    position: fixed;
+    top: 16px; right: 20px; z-index: 100;
+    background: rgba(15,15,18,.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-hi);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: border-color .15s, color .15s;
+  }
+  #close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .page { max-width: 880px; margin: 0 auto; padding: 60px 32px 100px; }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .hero-title {
+    font-family: var(--mono);
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .hero-sub {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: .04em;
+    margin-bottom: 28px;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .htag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .htag.hw  { color: var(--amber);  border-color: rgba(240,180,74,.25);  background: rgba(240,180,74,.06); }
+  .htag.sw  { color: var(--accent); border-color: rgba(126,184,247,.25); background: rgba(126,184,247,.06); }
+  .htag.ai  { color: var(--green);  border-color: rgba(107,203,139,.25); background: rgba(107,203,139,.06); }
+  .htag.tl  { color: var(--teal);   border-color: rgba(91,200,200,.25);  background: rgba(91,200,200,.06); }
+
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 36px; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    padding: 5px 12px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .badge-role   { color: var(--teal);  border-color: rgba(91,200,200,.35);  background: rgba(91,200,200,.07); }
+  .badge-inc    { color: var(--green); border-color: rgba(107,203,139,.3);  background: rgba(107,203,139,.06); }
+  .badge-govt   { color: var(--amber); border-color: rgba(240,180,74,.3);   background: rgba(240,180,74,.06); }
+  .badge-deploy { color: var(--accent);border-color: rgba(126,184,247,.3);  background: rgba(126,184,247,.06); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  h3 {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: .06em;
+    margin: 28px 0 10px;
+  }
+  p { color: var(--text-dim); margin-bottom: 14px; font-size: 14.5px; }
+  p strong { color: var(--text); font-weight: 500; }
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    background: rgba(240,180,74,.08);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  /* ── Images ── */
+  .img-frame {
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    margin: 20px 0 0;
+  }
+  .img-frame img { width: 100%; display: block; }
+  .img-caption {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: .05em;
+    margin-bottom: 28px;
+  }
+  .img-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0 28px;
+  }
+  @media (max-width: 600px) { .img-grid { grid-template-columns: 1fr; } }
+  .img-grid-item .img-frame { margin: 0; }
+  .img-grid-item .img-caption { margin-bottom: 0; }
+
+  /* ── Pipeline ── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 20px;
+    margin: 20px 0 32px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .pl-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 100px;
+  }
+  .pl-box {
+    background: var(--bg3);
+    border: 1px solid var(--border-hi);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.4;
+    width: 100%;
+  }
+  .pl-box .pl-title { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+  .pl-box .pl-sub   { font-size: 10px; color: var(--text-faint); letter-spacing: .04em; }
+  .pl-box.hw   { border-color: rgba(240,180,74,.4);  color: var(--amber); }
+  .pl-box.bsp  { border-color: rgba(91,200,200,.4);  color: var(--teal); }
+  .pl-box.cam  { border-color: rgba(107,203,139,.4); color: var(--green); }
+  .pl-box.app  { border-color: rgba(126,184,247,.4); color: var(--accent); }
+  .pl-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    color: var(--border-hi);
+    font-size: 16px;
+    flex-shrink: 0;
+    align-self: center;
+    padding-bottom: 18px;
+  }
+
+  /* ── Frag cards ── */
+  .frag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .frag-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 20px;
+    transition: border-color .15s;
+  }
+  .frag-card:hover { border-color: var(--border-hi); }
+  .frag-idx   { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 5px; }
+  .frag-title { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+  .frag-body  { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+  /* ── Code block ── */
+  .code-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--teal);
+    border-radius: 4px;
+    padding: 18px 22px;
+    margin: 16px 0 24px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.85;
+    overflow-x: auto;
+  }
+  .code-block .c-label { font-size: 10px; letter-spacing: .14em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 12px; }
+  .c-key     { color: var(--teal); }
+  .c-val     { color: var(--green); }
+  .c-comment { color: var(--text-faint); font-style: italic; }
+
+  /* ── Decision block ── */
+  .decision-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin: 16px 0 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-dim);
+  }
+  .decision-block .d-label { font-size: 10px; letter-spacing: .14em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 8px; }
+  .decision-block span.hi   { color: var(--green); }
+  .decision-block span.warn { color: var(--amber); }
+  .decision-block span.tl   { color: var(--teal); }
+
+  /* ── Result pills ── */
+  .result-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+  .result-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 20px;
+    min-width: 140px;
+  }
+  .rp-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 6px; }
+  .rp-val   { font-family: var(--mono); font-size: 20px; font-weight: 500; line-height: 1; }
+  .rp-sub   { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+  .green { color: var(--green); }
+  .amber { color: var(--amber); }
+  .blue  { color: var(--accent); }
+  .teal  { color: var(--teal); }
+
+  /* ── Team table ── */
+  .team-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; margin: 16px 0 24px; }
+  .team-table th { color: var(--text-faint); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 6px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+  .team-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text-dim); }
+  .team-table tr.me td { color: var(--teal); }
+  .team-table tr:last-child td { border-bottom: none; }
+
+  /* ── Toolchain ── */
+  .tc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 10px; margin: 16px 0;
+  }
+  .tc-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; font-family: var(--mono); font-size: 12px; }
+  .tc-name { color: var(--text); margin-bottom: 3px; }
+  .tc-desc { color: var(--text-faint); font-size: 11px; }
+
+  /* ── External link ── */
+  .ext-link {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .06em;
+    color: var(--teal); text-decoration: none;
+    border: 1px solid rgba(91,200,200,.3); background: rgba(91,200,200,.06);
+    padding: 8px 16px; border-radius: 4px;
+    transition: border-color .15s, background .15s;
+    margin-top: 8px;
+  }
+  .ext-link:hover { border-color: var(--teal); background: rgba(91,200,200,.12); }
+</style>
+</head>
+<body>
+
+<button id="close-btn" onclick="window.parent.postMessage('closeASTA','*')">&#10005; CLOSE</button>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero-eyebrow">Health Tech &middot; Embedded Systems &middot; Edge AI</div>
+  <div class="hero-title">ASTA Vision Panel<br>Founding Engineer</div>
+  <div class="hero-sub">Per-bed edge compute unit for hospital ward monitoring — custom Buildroot Linux on Raspberry Pi Zero 2W</div>
+
+  <div class="badge-row">
+    <span class="badge badge-role">Founding Engineer</span>
+    <span class="badge badge-inc">AIC-SEED Incubated</span>
+    <span class="badge badge-govt">MeitY Startup Hub</span>
+    <span class="badge badge-deploy">7+ Live Deployments</span>
+  </div>
+
+  <div class="hero-tags">
+    <span class="htag hw">Raspberry Pi Zero 2W</span>
+    <span class="htag hw">Camera Module 3</span>
+    <span class="htag sw">Buildroot</span>
+    <span class="htag sw">libcamera</span>
+    <span class="htag ai">OpenCV4 NEON</span>
+    <span class="htag tl">Python 3</span>
+    <span class="htag sw">Linux BSP</span>
+  </div>
+
+  <!-- HERO IMAGES -->
+  <div class="img-grid">
+    <div class="img-grid-item">
+      <div class="img-frame"><img src="ASTA/Dev_1.jpeg" alt="ASTA Vision Panel - single unit, rear view"></div>
+      <div class="img-caption">Vision Panel unit — Camera Module 3 (front) + active cooling fan (rear). 3D-printed enclosure.</div>
+    </div>
+    <div class="img-grid-item">
+      <div class="img-frame"><img src="ASTA/Dev_2.jpeg" alt="ASTA Vision Panel - two production units"></div>
+      <div class="img-caption">Two units side by side. Right unit shows USB-A port. Identical software stack, same BSP build.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- CONTEXT -->
+  <div class="section-label">What ASTA Does</div>
+  <h2>Hospital ward monitoring without replacing hardware</h2>
+  <p>
+    ASTA mounts a camera on the bedside monitor, not the patient, and reads the display. Computer vision extracts structured vitals — heart rate, SpO₂, blood pressure, respiratory rate — from any OEM monitor brand with no API, no hardware tap, and no hospital IT integration required. A physiological reasoning layer detects deterioration and routes role-aware alerts to the right clinician.
+  </p>
+  <p>
+    The Vision Panel is the edge unit that sits at every bed. It runs the capture pipeline, transmits to the ASTA backend, and is managed entirely headless over SSH and Pi Connect. <strong>I designed and built the full embedded software stack</strong> — BSP, kernel config, camera pipeline, and power management — from bring-up in late 2024 through to hospital deployment.
+  </p>
+
+  <a class="ext-link" href="https://www.astahealthtech.com/" target="_blank">astahealthtech.com ↗</a>
+
+  <hr class="divider">
+
+  <!-- HARDWARE -->
+  <div class="section-label">Hardware</div>
+  <h2>Platform overview</h2>
+
+  <div class="frag-grid">
+    <div class="frag-card">
+      <div class="frag-idx">SoC</div>
+      <div class="frag-title">Raspberry Pi Zero 2W</div>
+      <div class="frag-body">ARM Cortex-A53 quad-core, 512MB RAM. Chosen for cost, form factor, and NEON FPU — essential for NEON-optimised OpenCV4 at the edge.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Camera</div>
+      <div class="frag-title">Camera Module 3 — IMX708</div>
+      <div class="frag-body">Sony IMX708 sensor via CSI-2. Driven by libcamera + rpicam-apps. Chosen for autofocus and low-light headroom needed in varied ward lighting conditions.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Cooling</div>
+      <div class="frag-title">Active 5V Fan</div>
+      <div class="frag-body">Forced-air cooling on the A53 cluster. The Zero 2W sustains thermal throttling under continuous OpenCV workloads without it — not optional for 24/7 operation.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Management</div>
+      <div class="frag-title">Headless — SSH + Pi Connect</div>
+      <div class="frag-body">No display, no keyboard. All configuration and updates over SSH. Pi Connect used for remote access when not on local network. Deployment requires zero physical interaction post-install.</div>
+    </div>
+    <div class="frag-card">
+      <div class="frag-idx">Enclosure</div>
+      <div class="frag-title">3D-Printed</div>
+      <div class="frag-body">Custom PLA enclosure with camera aperture, fan mount, ventilation slots, and corner screw bosses for wall/monitor mounting. Iterated across two hardware revisions.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SOFTWARE STACK -->
+  <div class="section-label">Software Stack</div>
+  <h2>Camera pipeline</h2>
+  <p>The full pipeline from sensor to network is custom-built. There is no off-the-shelf OS — the root filesystem is generated entirely from a Buildroot config targeting the Zero 2W BSP.</p>
+
+  <div class="pipeline">
+    <div class="pl-stage">
+      <div class="pl-box hw">
+        <div class="pl-title">IMX708</div>
+        <div class="pl-sub">Sony CSI-2 sensor</div>
+      </div>
+    </div>
+    <div class="pl-arrow">›</div>
+    <div class="pl-stage">
+      <div class="pl-box bsp">
+        <div class="pl-title">libcamera</div>
+        <div class="pl-sub">IPA + kernel driver</div>
+      </div>
+    </div>
+    <div class="pl-arrow">›</div>
+    <div class="pl-stage">
+      <div class="pl-box bsp">
+        <div class="pl-title">rpicam-apps</div>
+        <div class="pl-sub">rpicam-still / vid</div>
+      </div>
+    </div>
+    <div class="pl-arrow">›</div>
+    <div class="pl-stage">
+      <div class="pl-box cam">
+        <div class="pl-title">OpenCV4</div>
+        <div class="pl-sub">NEON · V4L2 · Python3</div>
+      </div>
+    </div>
+    <div class="pl-arrow">›</div>
+    <div class="pl-stage">
+      <div class="pl-box app">
+        <div class="pl-title">Python App</div>
+        <div class="pl-sub">HTTPS · requests</div>
+      </div>
+    </div>
+    <div class="pl-arrow">›</div>
+    <div class="pl-stage">
+      <div class="pl-box app">
+        <div class="pl-title">ASTA Backend</div>
+        <div class="pl-sub">CV · AI · Alerting</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Buildroot BSP — selected config</h2>
+  <p>The rootfs is built from scratch using Buildroot. GStreamer and FFmpeg were explicitly dropped — the pipeline does not need them and they would bloat the image past the 256MB target. Three sections from the config worth showing:</p>
+
+  <div class="code-block">
+    <div class="c-label">BSP / Kernel — bcm2709 defconfig, RPi linux fork, pinned commit</div>
+    <span class="c-key">BR2_LINUX_KERNEL_CUSTOM_TARBALL</span>=<span class="c-val">y</span><br>
+    <span class="c-key">BR2_LINUX_KERNEL_DEFCONFIG</span>=<span class="c-val">"bcm2709"</span><br>
+    <span class="c-key">BR2_LINUX_KERNEL_INTREE_DTS_NAME</span>=<span class="c-val">"broadcom/bcm2710-rpi-zero-2-w"</span><br>
+    <span class="c-comment"># Kernel commit pinned — not a floating tag. Reproducible builds across units.</span>
+  </div>
+
+  <div class="code-block">
+    <div class="c-label">Camera pipeline — libcamera IPA + rpicam-apps + OpenCV4 NEON</div>
+    <span class="c-key">BR2_PACKAGE_LIBCAMERA</span>=<span class="c-val">y</span><br>
+    <span class="c-key">BR2_PACKAGE_LIBCAMERA_IPA</span>=<span class="c-val">y</span> &nbsp;<span class="c-comment"># imx708 in-process algorithm</span><br>
+    <span class="c-key">BR2_PACKAGE_RPICAM_APPS</span>=<span class="c-val">y</span> &nbsp;&nbsp;<span class="c-comment"># rpicam-still, rpicam-vid, rpicam-raw</span><br>
+    <span class="c-key">BR2_PACKAGE_OPENCV4_NEON</span>=<span class="c-val">y</span> &nbsp;&nbsp;<span class="c-comment"># NEON SIMD — required on A53 for usable throughput</span><br>
+    <span class="c-key">BR2_PACKAGE_OPENCV4_PYTHON3</span>=<span class="c-val">y</span><br>
+    <span class="c-key">BR2_PACKAGE_OPENCV4_WITH_V4L</span>=<span class="c-val">y</span>
+  </div>
+
+  <div class="code-block">
+    <div class="c-label">Rootfs target — 256MB, GStreamer and FFmpeg explicitly removed</div>
+    <span class="c-key">BR2_TARGET_ROOTFS_EXT2_SIZE</span>=<span class="c-val">"256M"</span><br>
+    <span class="c-comment"># GStreamer and FFmpeg dropped — not used by this pipeline.</span><br>
+    <span class="c-comment"># libcamera + rpicam-apps + OpenCV4 + Python3 fits comfortably in 256M.</span>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ENGINEERING DECISIONS -->
+  <div class="section-label">Engineering Decisions</div>
+  <h2>Why these choices</h2>
+
+  <div class="decision-block">
+    <div class="d-label">Buildroot over Raspberry Pi OS</div>
+    Pi OS ships a desktop, a browser, Bluetooth stack, audio servers, and a package manager — none of which exist in a headless ward unit. Buildroot gives a <span class="hi">minimal, auditable rootfs</span> with only what the pipeline needs. Boot time is faster, attack surface is smaller, and the image is reproducible across every unit from the same config.
+  </div>
+
+  <div class="decision-block">
+    <div class="d-label">libcamera + rpicam-apps over direct V4L2</div>
+    The IMX708 requires in-process algorithm (IPA) support for autofocus and AEC/AGC. libcamera handles this correctly; raw V4L2 capture bypasses IPA and produces unusable frames in variable ward lighting. <span class="tl">rpicam-apps</span> sits on top of libcamera and gives reliable CLI capture — V4L2 videoio is forward-provisioned in the config for a future direct-capture path.
+  </div>
+
+  <div class="decision-block">
+    <div class="d-label">NEON-optimised OpenCV4 — not optional</div>
+    The A53 without NEON runs OpenCV at roughly <span class="warn">3-4x lower throughput</span>. Enabling <code>BR2_PACKAGE_OPENCV4_NEON=y</code> compiles with <code>-mfpu=neon-vfpv4</code> and unlocks SIMD paths in imgproc and imgcodecs. For a continuous capture-and-process loop, this is the difference between keeping up with the frame rate and falling behind.
+  </div>
+
+  <div class="decision-block">
+    <div class="d-label">Active cooling — not a nice-to-have</div>
+    The Zero 2W throttles the A53 cluster at sustained load above ~60°C. In a closed 3D-printed enclosure running a continuous CV workload, passive cooling does not hold the thermal budget. The <span class="hi">5V fan</span> keeps the SoC in the sustained performance range across a full ward shift.
+  </div>
+
+  <div class="decision-block">
+    <div class="d-label">Pinned kernel commit, not a floating tag</div>
+    Every unit in the field runs the same exact kernel. A floating tag (e.g. <code>rpi-6.6.y</code>) would drift between builds, making it impossible to reproduce a specific unit's environment for debugging. <span class="tl">Pinning to a commit hash</span> means the build is deterministic regardless of when it runs.
+  </div>
+
+  <hr class="divider">
+
+  <!-- OUTCOME -->
+  <div class="section-label">Outcome</div>
+  <h2>From bring-up to hospital deployment</h2>
+  <p>Started from bare metal in late 2024. First working capture pipeline in a few weeks. First hospital demo by mid-2025 — before the second EEE joined the team. The stack now runs across <strong>7+ live hospital deployments</strong> with no on-site technical support required post-install.</p>
+
+  <div class="result-row">
+    <div class="result-pill">
+      <div class="rp-label">Image Size</div>
+      <div class="rp-val teal">256MB</div>
+      <div class="rp-sub">Full stack rootfs</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Deployments</div>
+      <div class="rp-val green">7+</div>
+      <div class="rp-sub">Live hospital units</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Management</div>
+      <div class="rp-val blue">SSH</div>
+      <div class="rp-sub">Zero physical access post-install</div>
+    </div>
+    <div class="result-pill">
+      <div class="rp-label">Backing</div>
+      <div class="rp-val amber">Govt.</div>
+      <div class="rp-sub">AIC-SEED · MeitY</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TEAM -->
+  <div class="section-label">Team</div>
+  <h2>7-person founding team</h2>
+
+  <table class="team-table">
+    <thead>
+      <tr><th>Role</th><th>Discipline</th></tr>
+    </thead>
+    <tbody>
+      <tr class="me">
+        <td>Embedded Engineer</td>
+        <td>EEE</td>
+      </tr>
+      <tr>
+        <td>Device Engineer</td>
+        <td>EEE</td>
+      </tr>
+      <tr>
+        <td>Design Engineer (×2)</td>
+        <td>Mechanical</td>
+      </tr>
+      <tr>
+        <td>Web Developer</td>
+        <td>CSE</td>
+      </tr>
+      <tr>
+        <td>AI Engineer</td>
+        <td>CSE</td>
+      </tr>
+      <tr>
+        <td>Systems Engineer</td>
+        <td>CSE</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <!-- TOOLCHAIN -->
+  <div class="section-label">Toolchain</div>
+  <div class="tc-grid">
+    <div class="tc-item"><div class="tc-name">Buildroot</div><div class="tc-desc">Full embedded Linux build system</div></div>
+    <div class="tc-item"><div class="tc-name">libcamera</div><div class="tc-desc">Camera stack + IMX708 IPA</div></div>
+    <div class="tc-item"><div class="tc-name">rpicam-apps</div><div class="tc-desc">Capture CLI on libcamera</div></div>
+    <div class="tc-item"><div class="tc-name">OpenCV4 + NEON</div><div class="tc-desc">SIMD-accelerated vision</div></div>
+    <div class="tc-item"><div class="tc-name">Python 3</div><div class="tc-desc">Application + HTTPS comms</div></div>
+    <div class="tc-item"><div class="tc-name">Pi Connect</div><div class="tc-desc">Remote headless access</div></div>
+    <div class="tc-item"><div class="tc-name">Linux 6.6 (RPi fork)</div><div class="tc-desc">bcm2710 / Zero 2W BSP</div></div>
+  </div>
+
+</div>
+
+<script>
+if (window.self !== window.top) {
+  document.getElementById('close-btn').style.display = 'block';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') window.parent.postMessage('closeASTA', '*');
+});
+</script>
+</body>
+</html>

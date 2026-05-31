@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RV32IM Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #0d0d0f; --bg2: #111114; --bg3: #16161a; --bd: #252529;
+  --bhi:    #3a3a42; --text: #ffffff; --dim: #e0e0f0; --faint: #a0a0bc;
+  --accent: #7eb8f7; --amber: #f7c97e; --green: #7ef7b8;
+  --pink:   #f77eb8; --red: #f77e7e;
+  --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; background: var(--bg); color: var(--text);
+  font-family: var(--sans); overflow: hidden; font-size: 17px;
+}
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+/* top bar */
+.top-bar {
+  display: flex; align-items: center; gap: 12px; padding: 6px 12px;
+  background: var(--bg2); border-bottom: 1px solid var(--bd); flex-shrink: 0;
+}
+.top-bar label { font-family: var(--mono); font-size: 10px; color: var(--faint); }
+input[type=range] { accent-color: var(--accent); cursor: pointer; }
+.disp-toggle { display: flex; gap: 6px; margin-left: auto; }
+.dsp-btn {
+  background: none; border: 1px solid var(--bd); color: var(--faint);
+  font-family: var(--mono); font-size: 10px; padding: 2px 8px;
+  cursor: pointer; border-radius: 3px; transition: all .15s;
+}
+.dsp-btn.active { border-color: var(--accent); color: var(--accent); }
+
+.body { display: flex; flex: 1; min-height: 0; }
+
+/* ── LEFT / CALC ── */
+.left {
+  display: flex; flex-direction: column; flex: 1; min-width: 0;
+  border-right: 1px solid var(--bd);
+}
+
+.disp {
+  background: var(--bg3); border-bottom: 1px solid var(--bd);
+  padding: 12px 16px; flex-shrink: 0;
+}
+.disp-expr {
+  font-family: var(--mono); font-size: 13px; color: var(--faint);
+  min-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: clip;
+  direction: ltr; text-align: right;
+}
+.disp-val {
+  font-family: var(--mono); font-size: 40px; font-weight: 500; color: var(--text);
+  text-align: right; margin-top: 2px; min-height: 48px; word-break: break-all;
+}
+.disp-sub {
+  font-family: var(--mono); font-size: 14px; color: var(--faint);
+  text-align: right; margin-top: 2px; min-height: 18px; letter-spacing: .04em;
+}
+.disp-note {
+  font-family: var(--mono); font-size: 9px; color: #44445a;
+  text-align: right; margin-top: 4px; letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* keypads */
+.keypad { display: grid; gap: 3px; padding: 8px; flex-shrink: 0; }
+.keypad.main {
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  flex: 1;           /* fill all remaining height in .left */
+  align-items: stretch;
+}
+.keypad.bits { grid-template-columns: repeat(6, 1fr); padding-bottom: 0; }
+.keypad.hex-keys { grid-template-columns: repeat(6, 1fr); padding-bottom: 0; display: none; }
+.keypad.hex-keys.visible { display: grid; }
+.key.hx { color: var(--amber); font-size: 19px; }
+
+.key {
+  background: var(--bg2); border: 1px solid var(--bd); color: var(--dim);
+  font-family: var(--mono); font-size: 21px; padding: 4px 2px;
+  cursor: pointer; border-radius: 4px; text-align: center;
+  transition: background .1s, border-color .1s, color .1s; user-select: none;
+  line-height: 1.2;
+}
+.key:hover  { background: var(--bg3); border-color: var(--bhi); color: var(--text); }
+.key:active { background: var(--bhi); }
+.key.op    { color: var(--accent); }
+.key.bit   { color: var(--amber); font-size: 17px; }
+.key.fn    { color: var(--green); font-size: 17px; }
+.key.eq    { background: var(--accent); color: #0d0d0f; font-weight: 600;
+             border-color: var(--accent); }
+.key.eq:hover { background: #a8d4ff; }
+.key.clr   { color: var(--red); }
+.key.wide  { grid-column: span 2; }
+
+/* ── PROGRAMMER PANEL ── */
+.prog-panel {
+  background: var(--bg3); border-bottom: 1px solid var(--bd);
+  padding: 6px 12px 8px; flex-shrink: 0;
+}
+/* bit grid */
+.bit-area { display: flex; flex-direction: column; gap: 2px; }
+.bit-lbl-row, .bit-grid {
+  display: flex; align-items: center; gap: 1px;
+}
+.bit-byte-sep { width: 8px; flex-shrink: 0; }
+.bit-nib-sep  { width: 4px; flex-shrink: 0; }
+.bit-lbl {
+  width: 18px; text-align: center; font-family: var(--mono);
+  font-size: 8px; color: #383852; flex-shrink: 0;
+}
+.bit-btn {
+  width: 18px; height: 18px; font-size: 10px; font-family: var(--mono);
+  background: var(--bg2); border: 1px solid var(--bd); color: var(--faint);
+  cursor: pointer; border-radius: 2px; display: flex; align-items: center;
+  justify-content: center; transition: background .08s, color .08s, border-color .08s;
+  padding: 0; flex-shrink: 0; line-height: 1;
+}
+.bit-btn.on  { background: var(--accent); color: #0d0d0f; border-color: var(--accent); font-weight:600; }
+.bit-btn:hover:not(.on) { border-color: var(--bhi); color: var(--text); }
+/* multi-base rows */
+.bases {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px 20px; margin-top: 7px;
+  font-family: var(--mono); font-size: 11px;
+}
+.base-row  { display: flex; gap: 7px; align-items: baseline; }
+.base-lbl  { color: var(--faint); min-width: 28px; font-size: 9px; letter-spacing: .08em; flex-shrink:0; }
+.base-val  { color: var(--dim); letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; }
+.base-val.hi { color: var(--accent); }
+
+/* ── RIGHT / TRACE ── */
+.trace {
+  width: 290px; flex-shrink: 0; display: flex; flex-direction: column;
+  background: var(--bg2);
+}
+.trace-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-bottom: 1px solid var(--bd); flex-shrink: 0;
+}
+.trace-hdr span { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: .1em; }
+.trace-clear {
+  background: none; border: 1px solid var(--bd); color: var(--faint);
+  font-family: var(--mono); font-size: 10px; padding: 2px 8px;
+  cursor: pointer; border-radius: 3px; transition: all .15s;
+}
+.trace-clear:hover { border-color: var(--bhi); color: var(--dim); }
+
+.trace-list {
+  flex: 1; overflow-y: auto; padding: 4px 0;
+  font-family: var(--mono); font-size: 11px; line-height: 1.8;
+}
+.trace-list::-webkit-scrollbar { width: 4px; }
+.trace-list::-webkit-scrollbar-track { background: var(--bg2); }
+.trace-list::-webkit-scrollbar-thumb { background: var(--bhi); border-radius: 2px; }
+
+.ti { padding: 1px 10px; display: flex; gap: 8px; align-items: baseline; }
+.ti:hover { background: var(--bg3); }
+.ti .addr { color: var(--faint); min-width: 40px; font-size: 10px; }
+.ti .asm  { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ti.t-alu  .asm { color: var(--green); }
+.ti.t-jump .asm { color: var(--pink); }
+.ti.t-sep  { color: var(--faint); font-size: 10px; opacity: .6; padding: 3px 10px; }
+
+.trace-stats {
+  padding: 5px 10px; border-top: 1px solid var(--bd); flex-shrink: 0;
+  font-family: var(--mono); font-size: 10px; color: var(--faint); display: flex; gap: 12px;
+}
+.ts-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+
+/* register panel — sized to show x0–x15 without scrolling */
+.reg-panel {
+  border-top: 1px solid var(--bd); flex-shrink: 0; padding: 6px 10px;
+  font-family: var(--mono); font-size: 10px;
+  /* 16 rows × ~17.5px + title ~22px + padding = ~322px */
+  height: 322px; overflow-y: hidden;
+}
+.reg-panel::-webkit-scrollbar { width: 4px; }
+.reg-panel::-webkit-scrollbar-thumb { background: var(--bhi); border-radius: 2px; }
+.reg-title {
+  color: var(--accent); letter-spacing: .08em; margin-bottom: 4px;
+  font-size: 10px; display: flex; justify-content: space-between;
+}
+.reg-row { display: flex; gap: 6px; line-height: 1.75; }
+.reg-name { color: var(--faint); min-width: 28px; }
+.reg-val  { color: var(--dim); min-width: 70px; }
+.reg-hex  { color: #555568; }
+.reg-row.ret .reg-name,
+.reg-row.ret .reg-val  { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top-bar">
+    <label>TRACE SPEED</label>
+    <input type="range" id="speed" min="1" max="5" value="3" style="width:80px">
+    <label id="speed-lbl" style="min-width:48px">NORMAL</label>
+    <span style="flex:1"></span>
+    <div class="disp-toggle">
+      <button class="dsp-btn active" id="btn-dec" onclick="setDisp('dec')">DEC</button>
+      <button class="dsp-btn"        id="btn-hex" onclick="setDisp('hex')">HEX</button>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="left">
+      <div class="disp">
+        <div class="disp-expr" id="expr-disp">0</div>
+        <div class="disp-val"  id="val-disp">0</div>
+        <div class="disp-sub"  id="sub-disp"></div>
+        <div class="disp-note">MGS 32 · Microcode Generator-Synthesizer</div>
+      </div>
+
+      <!-- Programmer panel: bit grid + multi-base display -->
+      <div class="prog-panel">
+        <div class="bit-area">
+          <div class="bit-lbl-row" id="bit-lbl-row"></div>
+          <div class="bit-grid"    id="bit-grid"></div>
+        </div>
+        <div class="bases">
+          <div class="base-row"><span class="base-lbl">HEX</span><span class="base-val hi" id="b-hex">0x0000 0000</span></div>
+          <div class="base-row"><span class="base-lbl">DEC</span><span class="base-val"    id="b-dec">0</span></div>
+          <div class="base-row"><span class="base-lbl">OCT</span><span class="base-val"    id="b-oct">0o0</span></div>
+          <div class="base-row"><span class="base-lbl">BIN</span><span class="base-val"    id="b-bin" style="font-size:10px;letter-spacing:.02em">0000 0000 0000 0000 0000 0000 0000 0000</span></div>
+        </div>
+      </div>
+
+      <!-- Bitwise / shift row -->
+      <div class="keypad bits">
+        <button class="key bit" onclick="kop('&amp;')">&amp;</button>
+        <button class="key bit" onclick="kop('|')">|</button>
+        <button class="key bit" onclick="kop('^')">^</button>
+        <button class="key bit" onclick="kop('~')">~</button>
+        <button class="key bit" onclick="kop('&lt;&lt;')">&lt;&lt;</button>
+        <button class="key bit" onclick="kop('&gt;&gt;')">&gt;&gt;</button>
+      </div>
+
+      <!-- Hex letter row (visible in HEX input mode only) -->
+      <div class="keypad hex-keys" id="hex-key-row">
+        <button class="key hx" onclick="kn('A')">A</button>
+        <button class="key hx" onclick="kn('B')">B</button>
+        <button class="key hx" onclick="kn('C')">C</button>
+        <button class="key hx" onclick="kn('D')">D</button>
+        <button class="key hx" onclick="kn('E')">E</button>
+        <button class="key hx" onclick="kn('F')">F</button>
+      </div>
+
+      <!-- Main keypad -->
+      <div class="keypad main">
+        <button class="key clr" onclick="kclr()">C</button>
+        <button class="key op"  onclick="kop('(')"> ( </button>
+        <button class="key op"  onclick="kop(')')"> ) </button>
+        <button class="key op"  onclick="kop('%')">%</button>
+        <button class="key op"  onclick="kop('/')">÷</button>
+
+        <button class="key" onclick="kn('7')">7</button>
+        <button class="key" onclick="kn('8')">8</button>
+        <button class="key" onclick="kn('9')">9</button>
+        <button class="key clr" onclick="kbs()">⌫</button>
+        <button class="key op"  onclick="kop('*')">×</button>
+
+        <button class="key" onclick="kn('4')">4</button>
+        <button class="key" onclick="kn('5')">5</button>
+        <button class="key" onclick="kn('6')">6</button>
+        <button class="key fn" onclick="kans()">ANS</button>
+        <button class="key op" onclick="kop('-')">−</button>
+
+        <button class="key" onclick="kn('1')">1</button>
+        <button class="key" onclick="kn('2')">2</button>
+        <button class="key" onclick="kn('3')">3</button>
+        <button class="key fn" onclick="kneg()">±</button>
+        <button class="key op" onclick="kop('+')">+</button>
+
+        <button class="key" onclick="kn('0')">0</button>
+        <button class="key fn" onclick="knot()" title="Bitwise NOT">NOT</button>
+        <button class="key eq" style="grid-column:span 3" onclick="keq()">=</button>
+      </div>
+    </div>
+
+    <!-- TRACE PANEL -->
+    <div class="trace">
+      <div class="trace-hdr">
+        <span>RV32IM TRACE</span>
+        <button class="trace-clear" onclick="clearTrace()">CLR</button>
+      </div>
+      <div class="trace-list" id="trace-list"></div>
+      <div class="trace-stats">
+        <span><span class="ts-dot" style="background:var(--green)"></span><span id="st-alu">0</span> ALU</span>
+        <span><span class="ts-dot" style="background:var(--pink)"></span><span id="st-jmp">0</span> JMP</span>
+        <span style="margin-left:auto;color:#44445a" id="st-total">0 instr</span>
+      </div>
+      <div class="reg-panel" id="reg-panel">
+        <div class="reg-title">
+          <span>INTEGER REGISTERS</span>
+          <span style="color:#44445a">x10 = a0 (result)</span>
+        </div>
+        <div id="reg-rows"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── Speed ──────────────────────────────────────────────────────────────────────
+const SPEED_MS = [0, 8, 20, 45, 110, 260];
+let speedIdx = 3;
+document.getElementById('speed').addEventListener('input', e => {
+  speedIdx = +e.target.value;
+  document.getElementById('speed-lbl').textContent =
+    ['', 'FASTEST', 'FAST', 'NORMAL', 'SLOW', 'SLOWEST'][speedIdx];
+});
+
+// ── Input / display mode ───────────────────────────────────────────────────────
+let dispMode = 'dec';
+function setDisp(m) {
+  dispMode = m;
+  document.getElementById('btn-dec').classList.toggle('active', m === 'dec');
+  document.getElementById('btn-hex').classList.toggle('active', m === 'hex');
+  document.getElementById('hex-key-row').classList.toggle('visible', m === 'hex');
+  if (lastResult !== null) updateDisplay(lastResult);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  RV32IM EMULATOR
+//  Implements: R-type (base + M-ext), I-type ALU, LUI, JAL
+//  This is the instruction set implemented in the Compiler below.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Signed 32×32 → upper 32 bits  (BigInt for correctness, avoids float precision)
+function mulh32s(a, b) {
+  const r = BigInt(a | 0) * BigInt(b | 0);
+  return Number((r >> 32n) & 0xFFFFFFFFn) | 0;
+}
+
+class RV32IM {
+  constructor(memWords = 256) {
+    this.mem = new Int32Array(memWords);  // word-indexed flat memory
+    this.x   = new Int32Array(32);        // x0–x31 (x0 always reads 0)
+    this.pc  = 0;
+    this.halted = false;
+  }
+
+  reset() { this.x.fill(0); this.pc = 0; this.halted = false; }
+
+  lw(byteAddr) { return this.mem[(byteAddr >>> 2) & (this.mem.length - 1)]; }
+  sw(byteAddr, v) { this.mem[(byteAddr >>> 2) & (this.mem.length - 1)] = v | 0; }
+
+  step() {
+    if (this.halted) return { pc: this.pc, asm: 'HALTED', type: 'jump' };
+
+    const pc  = this.pc;
+    const raw = this.lw(pc) >>> 0;   // unsigned view of instruction word
+    const op  = raw & 0x7F;
+    const rd  = (raw >>  7) & 0x1F;
+    const f3  = (raw >> 12) & 0x07;
+    const rs1 = (raw >> 15) & 0x1F;
+    const rs2 = (raw >> 20) & 0x1F;  // also shamt for I-type shifts
+    const f7  = (raw >> 25) & 0x7F;
+
+    // I-type sign-extended immediate [31:20]
+    let immI = raw >> 20;
+    if (immI & 0x800) immI |= ~0xFFF;
+
+    this.pc += 4;
+    this.x[0] = 0;  // x0 is hardwired to zero (mirrors regfile.sv)
+
+    let asm = '????', type = 'alu';
+
+    switch (op) {
+
+      // ── R-type: base integer + M-extension ─────────────────────────────────
+      case 0x33: {
+        const a  = this.x[rs1] | 0;
+        const b  = this.x[rs2] | 0;
+        const au = a >>> 0;
+        const bu = b >>> 0;
+        let res  = 0;
+
+        if (f7 === 1) {
+          // ── M-extension ──────────────────────────────────────────────────
+          switch (f3) {
+            case 0:  // MUL: lower 32 bits of rs1 × rs2 (signed)
+              res = Math.imul(a, b);
+              asm = `mul    x${rd}, x${rs1}, x${rs2}  ; ${res}`; break;
+            case 1:  // MULH: upper 32 bits (signed × signed)
+              res = mulh32s(a, b);
+              asm = `mulh   x${rd}, x${rs1}, x${rs2}  ; 0x${(res>>>0).toString(16)}`; break;
+            case 2:  // MULHSU: upper 32 bits (signed × unsigned)
+              res = Number((BigInt(a|0) * BigInt(au)) >> 32n) | 0;
+              asm = `mulhsu x${rd}, x${rs1}, x${rs2}`; break;
+            case 3:  // MULHU: upper 32 bits (unsigned × unsigned)
+              res = Number((BigInt(au) * BigInt(bu)) >> 32n) | 0;
+              asm = `mulhu  x${rd}, x${rs1}, x${rs2}`; break;
+            case 4:  // DIV: signed; ÷0 = -1; overflow = MIN_INT
+              res = (b === 0) ? -1 : (a === -0x80000000 && b === -1) ? -0x80000000 : (a / b | 0);
+              asm = `div    x${rd}, x${rs1}, x${rs2}  ; ${res}`; break;
+            case 5:  // DIVU: unsigned; ÷0 = 0xFFFFFFFF
+              res = (bu === 0) ? -1 : (au / bu | 0);
+              asm = `divu   x${rd}, x${rs1}, x${rs2}  ; ${res >>> 0}`; break;
+            case 6:  // REM: signed; %0 = dividend; overflow → 0
+              res = (b === 0) ? a : (a === -0x80000000 && b === -1) ? 0 : (a % b | 0);
+              asm = `rem    x${rd}, x${rs1}, x${rs2}  ; ${res}`; break;
+            case 7:  // REMU: unsigned; %0 = dividend
+              res = (bu === 0) ? au | 0 : (au % bu) | 0;
+              asm = `remu   x${rd}, x${rs1}, x${rs2}  ; ${res >>> 0}`; break;
+          }
+        } else {
+          // ── Base integer R-type ───────────────────────────────────────────
+          switch (f3) {
+            case 0:  // ADD / SUB
+              res = (f7 === 0x20) ? (a - b) | 0 : (a + b) | 0;
+              asm = (f7 === 0x20)
+                ? `sub    x${rd}, x${rs1}, x${rs2}  ; ${res}`
+                : `add    x${rd}, x${rs1}, x${rs2}  ; ${res}`; break;
+            case 1:  // SLL
+              res = a << (b & 31);
+              asm = `sll    x${rd}, x${rs1}, x${rs2}`; break;
+            case 2:  // SLT (signed)
+              res = (a < b) ? 1 : 0;
+              asm = `slt    x${rd}, x${rs1}, x${rs2}`; break;
+            case 3:  // SLTU (unsigned)
+              res = (au < bu) ? 1 : 0;
+              asm = `sltu   x${rd}, x${rs1}, x${rs2}`; break;
+            case 4:  // XOR
+              res = a ^ b;
+              asm = `xor    x${rd}, x${rs1}, x${rs2}  ; 0x${(res>>>0).toString(16)}`; break;
+            case 5:  // SRL / SRA
+              res = (f7 === 0x20) ? (a >> (b & 31)) : (au >>> (b & 31));
+              asm = (f7 === 0x20)
+                ? `sra    x${rd}, x${rs1}, x${rs2}`
+                : `srl    x${rd}, x${rs1}, x${rs2}`; break;
+            case 6:  // OR
+              res = a | b;
+              asm = `or     x${rd}, x${rs1}, x${rs2}  ; 0x${(res>>>0).toString(16)}`; break;
+            case 7:  // AND
+              res = a & b;
+              asm = `and    x${rd}, x${rs1}, x${rs2}  ; 0x${(res>>>0).toString(16)}`; break;
+          }
+        }
+        this.x[rd] = res | 0;
+        break;
+      }
+
+      // ── I-type ALU ──────────────────────────────────────────────────────────
+      case 0x13: {
+        const a = this.x[rs1] | 0;
+        let res = 0;
+        switch (f3) {
+          case 0:  // ADDI
+            res = (a + immI) | 0;
+            asm = `addi   x${rd}, x${rs1}, ${immI}  ; ${res}`; break;
+          case 1:  // SLLI
+            res = a << (rs2 & 31);
+            asm = `slli   x${rd}, x${rs1}, ${rs2}`; break;
+          case 2:  // SLTI
+            res = (a < immI) ? 1 : 0;
+            asm = `slti   x${rd}, x${rs1}, ${immI}`; break;
+          case 3:  // SLTIU
+            res = ((a >>> 0) < (immI >>> 0)) ? 1 : 0;
+            asm = `sltiu  x${rd}, x${rs1}, ${immI}`; break;
+          case 4:  // XORI
+            res = a ^ immI;
+            asm = `xori   x${rd}, x${rs1}, ${immI}  ; 0x${(res>>>0).toString(16)}`; break;
+          case 5:  // SRLI / SRAI
+            res = (f7 === 0x20) ? (a >> (rs2 & 31)) : ((a >>> 0) >>> (rs2 & 31));
+            asm = (f7 === 0x20)
+              ? `srai   x${rd}, x${rs1}, ${rs2}`
+              : `srli   x${rd}, x${rs1}, ${rs2}`; break;
+          case 6:  // ORI
+            res = a | immI;
+            asm = `ori    x${rd}, x${rs1}, 0x${(immI>>>0).toString(16)}`; break;
+          case 7:  // ANDI
+            res = a & immI;
+            asm = `andi   x${rd}, x${rs1}, 0x${(immI>>>0).toString(16)}`; break;
+        }
+        this.x[rd] = res | 0;
+        break;
+      }
+
+      // ── LUI ─────────────────────────────────────────────────────────────────
+      case 0x37: {
+        const u = (raw & 0xFFFFF000) | 0;
+        this.x[rd] = u;
+        asm = `lui    x${rd}, 0x${((u >>> 0) >>> 12).toString(16).padStart(5, '0')}  ; ${u}`;
+        break;
+      }
+
+      // ── JAL ─────────────────────────────────────────────────────────────────
+      case 0x6F: {
+        // J-type immediate reconstruction
+        const j20    = (raw >>> 31) & 1;
+        const j10_1  = (raw >>> 21) & 0x3FF;
+        const j11    = (raw >>> 20) & 1;
+        const j19_12 = (raw >>> 12) & 0xFF;
+        let immJ = (j20 << 20) | (j19_12 << 12) | (j11 << 11) | (j10_1 << 1);
+        if (immJ & 0x100000) immJ |= ~0x1FFFFF;  // sign-extend 21-bit
+        this.x[rd] = this.pc;                    // rd ← pc+4 (already advanced)
+        this.pc    = (pc + immJ) >>> 0;
+        if (this.pc === (pc >>> 0)) this.halted = true; // jal x0,0 = infinite loop = halt
+        asm  = `jal    x${rd}, ${immJ >= 0 ? '+' : ''}${immJ}`;
+        type = 'jump';
+        break;
+      }
+
+      default:
+        asm = `op=0x${op.toString(16).padStart(2, '0')} ???`;
+    }
+
+    this.x[0] = 0;  // enforce x0 = 0
+    return { pc, asm, type };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  TOKENIZER
+//  Supports: decimal integers, 0x hex literals, operators + - * / % & | ^ ~ << >>
+// ══════════════════════════════════════════════════════════════════════════════
+
+function tokenize(src) {
+  // Normalise display characters
+  src = src.trim()
+    .replace(/×/g, '*').replace(/÷/g, '/')
+    .replace(/−/g, '-').replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+
+  const toks = [];
+  let i = 0;
+
+  while (i < src.length) {
+    if (/\s/.test(src[i])) { i++; continue; }
+
+    // Hex literal: 0x[0-9a-fA-F]+
+    if (src[i] === '0' && (src[i+1] === 'x' || src[i+1] === 'X')) {
+      let s = ''; i += 2;
+      while (i < src.length && /[0-9a-fA-F]/.test(src[i])) s += src[i++];
+      if (!s) throw new Error('Empty hex literal after 0x');
+      toks.push({ t: 'num', v: parseInt(s, 16) | 0 });
+      continue;
+    }
+
+    // Decimal integer
+    if (/[0-9]/.test(src[i])) {
+      let s = '';
+      while (i < src.length && /[0-9]/.test(src[i])) s += src[i++];
+      toks.push({ t: 'num', v: parseInt(s, 10) | 0 });
+      continue;
+    }
+
+    // Multi-char operators (test longer ones first)
+    if (src[i] === '>' && src[i+1] === '>' && src[i+2] === '>') {
+      toks.push({ t: 'op', v: '>>>' }); i += 3; continue;
+    }
+    if (src[i] === '>' && src[i+1] === '>') {
+      toks.push({ t: 'op', v: '>>' }); i += 2; continue;
+    }
+    if (src[i] === '<' && src[i+1] === '<') {
+      toks.push({ t: 'op', v: '<<' }); i += 2; continue;
+    }
+
+    // Single character token
+    toks.push({ t: 'op', v: src[i++] });
+  }
+  return toks;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PARSER  →  AST
+//  Operator precedence (low → high), matching C / Java conventions:
+//    | < ^ < & < <<  >>  >>> < + - < * / % < unary (- ~) < atom
+// ══════════════════════════════════════════════════════════════════════════════
+
+function parse(toks) {
+  let pos = 0;
+  const peek   = ()  => toks[pos];
+  const eat    = ()  => toks[pos++];
+  const expect = v   => {
+    if (!toks[pos] || toks[pos].v !== v) throw new Error(`Expected "${v}"`);
+    pos++;
+  };
+
+  function parseBin(sub, ops) {
+    let l = sub();
+    while (peek() && ops.includes(peek().v)) {
+      const op = eat().v;
+      l = { type: 'binary', op, left: l, right: sub() };
+    }
+    return l;
+  }
+
+  function parseOr()    { return parseBin(parseXor,   ['|']);              }
+  function parseXor()   { return parseBin(parseAnd,   ['^']);              }
+  function parseAnd()   { return parseBin(parseShift, ['&']);              }
+  function parseShift() { return parseBin(parseAdd,   ['<<', '>>', '>>>']); }
+  function parseAdd()   { return parseBin(parseMul,   ['+', '-']);         }
+  function parseMul()   { return parseBin(parseUnary, ['*', '/', '%']);    }
+
+  function parseUnary() {
+    if (peek() && peek().v === '-') { eat(); return { type: 'neg', operand: parseUnary() }; }
+    if (peek() && peek().v === '~') { eat(); return { type: 'not', operand: parseUnary() }; }
+    if (peek() && peek().v === '+') { eat(); }
+    return parseAtom();
+  }
+
+  function parseAtom() {
+    const t = peek();
+    if (!t) throw new Error('Unexpected end of expression');
+    if (t.t === 'num') { eat(); return { type: 'num', value: t.v | 0 }; }
+    if (t.t === 'op' && t.v === '(') { eat(); const v = parseOr(); expect(')'); return v; }
+    throw new Error('Unexpected token: "' + t.v + '"');
+  }
+
+  const ast = parseOr();
+  if (pos < toks.length) throw new Error('Unexpected token: "' + toks[pos].v + '"');
+  return ast;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  COMPILER  AST → RV32IM machine code
+//
+//  Registers used:
+//    x0  = zero (hardwired)
+//    x1–x9, x11–x15 = temporaries (stack-allocated by compiler)
+//    x10 (a0) = final result (ABI return register)
+//
+//  Instruction encoding helpers
+// ══════════════════════════════════════════════════════════════════════════════
+
+const encR   = (f7,rs2,rs1,f3,rd,op) =>
+  ((f7&0x7F)<<25|(rs2&31)<<20|(rs1&31)<<15|(f3&7)<<12|(rd&31)<<7|(op&0x7F))>>>0;
+const encI   = (im,rs1,f3,rd,op)     =>
+  (((im&0xFFF)<<20)|((rs1&31)<<15)|((f3&7)<<12)|((rd&31)<<7)|(op&0x7F))>>>0;
+const encU   = (hi20,rd,op)          =>
+  (((hi20&0xFFFFF)<<12)|((rd&31)<<7)|(op&0x7F))>>>0;
+const encJAL = (rd, off) => {
+  const im = off & 0x1FFFFF;
+  return (
+    (((im>>20)&1)<<31 | ((im>>1)&0x3FF)<<21 | ((im>>11)&1)<<20 | ((im>>12)&0xFF)<<12) |
+    ((rd&31)<<7) | 0x6F
+  ) >>> 0;
+};
+
+// Temporaries: skip x0 (zero) and x10 (reserved for result)
+const TMPS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15];
+
+class Compiler {
+  constructor() {
+    this.code = [];   // { word: uint32, asm: string, type: string }
+    this.tIdx = 0;    // next index into TMPS
+  }
+
+  emit(word, asm, type = 'alu') {
+    this.code.push({ word: word >>> 0, asm, type });
+  }
+
+  // Allocate the next temporary register
+  alloc() {
+    if (this.tIdx >= TMPS.length) throw new Error('Expression too complex (nesting limit reached)');
+    return TMPS[this.tIdx++];
+  }
+
+  // Shrink the stack so only registers up to (and including) r are live
+  keepOnly(r) { this.tIdx = TMPS.indexOf(r) + 1; }
+
+  // ── Load a 32-bit signed integer constant into rd ──────────────────────────
+  // Uses LUI + ADDI, the canonical RV32I two-instruction sequence.
+  // Handles all 32-bit values including edge cases (0, ±1, 0x800, INT_MIN, INT_MAX).
+  loadImm(rd, val) {
+    val = val | 0;  // force 32-bit signed
+
+    // lo12 = sign-extended lower 12 bits (what ADDI would add)
+    const lo12 = ((val << 20) >> 20);  // arithmetic shift gives sign extension
+    const hi20 = ((val - lo12) >>> 12) & 0xFFFFF;
+
+    if (hi20 !== 0) {
+      // LUI rd, hi20  — places hi20 into rd[31:12]
+      this.emit(
+        encU(hi20, rd, 0x37),
+        `lui    x${rd}, 0x${hi20.toString(16).padStart(5, '0')}  ; ${val}`
+      );
+      if (lo12 !== 0) {
+        // ADDI rd, rd, lo12  — adds the sign-extended 12-bit residue
+        this.emit(
+          encI(lo12, rd, 0, rd, 0x13),
+          `addi   x${rd}, x${rd}, ${lo12}`
+        );
+      }
+    } else {
+      // Small value: fits entirely in ADDI's 12-bit immediate
+      this.emit(
+        encI(lo12, 0, 0, rd, 0x13),
+        `addi   x${rd}, x0, ${lo12}  ; ${val}`
+      );
+    }
+  }
+
+  // ── Compile one AST node; return the register holding the result ───────────
+  cNode(node) {
+    switch (node.type) {
+
+      case 'num': {
+        const r = this.alloc();
+        this.loadImm(r, node.value);
+        return r;
+      }
+
+      case 'neg': {
+        // Unary minus: SUB rd, x0, rs  →  rd = 0 − rs
+        const v = this.cNode(node.operand);
+        this.emit(
+          encR(0x20, v, 0, 0, v, 0x33),
+          `sub    x${v}, x0, x${v}  ; negate`
+        );
+        return v;
+      }
+
+      case 'not': {
+        // Bitwise NOT: XORI rd, rs, -1  →  rd = rs XOR 0xFFFFFFFF
+        const v = this.cNode(node.operand);
+        this.emit(
+          encI(-1, v, 4, v, 0x13),
+          `xori   x${v}, x${v}, -1  ; bitwise NOT`
+        );
+        return v;
+      }
+
+      case 'binary': {
+        const l = this.cNode(node.left);   // result lives in l
+        const r = this.cNode(node.right);  // result lives in r (allocated after l)
+
+        // Map operator → [f7, f3, opcode, mnemonic]
+        const OPS = {
+          '+':   [0x00, 0, 0x33, 'add  '],
+          '-':   [0x20, 0, 0x33, 'sub  '],
+          '*':   [0x01, 0, 0x33, 'mul  '],   // M-extension
+          '/':   [0x01, 4, 0x33, 'div  '],   // M-extension
+          '%':   [0x01, 6, 0x33, 'rem  '],   // M-extension
+          '&':   [0x00, 7, 0x33, 'and  '],
+          '|':   [0x00, 6, 0x33, 'or   '],
+          '^':   [0x00, 4, 0x33, 'xor  '],
+          '<<':  [0x00, 1, 0x33, 'sll  '],
+          '>>':  [0x20, 5, 0x33, 'sra  '],   // arithmetic right shift
+          '>>>': [0x00, 5, 0x33, 'srl  '],   // logical right shift
+        };
+
+        const entry = OPS[node.op];
+        if (!entry) throw new Error('Unknown operator: ' + node.op);
+
+        const [f7, f3, opcode, mnem] = entry;
+        // Compute l ← l OP r, then free r
+        this.emit(
+          encR(f7, r, l, f3, l, opcode),
+          `${mnem} x${l}, x${l}, x${r}`
+        );
+        this.keepOnly(l);  // free r and anything above it
+        return l;
+      }
+
+      default:
+        throw new Error('Unknown AST node: ' + node.type);
+    }
+  }
+
+  // ── Top-level compile: AST → instruction stream ────────────────────────────
+  compile(ast) {
+    const result = this.cNode(ast);
+
+    // Move result into x10 (ABI: a0 = return value register)
+    if (result !== 10) {
+      this.emit(
+        encR(0x00, result, 0, 0, 10, 0x33),
+        `add    x10, x0, x${result}  ; → a0 (return)`
+      );
+    }
+
+    // Halt: JAL x0, 0  →  jump-to-self, detected as infinite loop
+    this.emit(encJAL(0, 0), `jal    x0, 0          ; halt`, 'jump');
+    return this;
+  }
+}
+
+// ── Load compiled program into emulator memory ────────────────────────────────
+function loadProgram(emu, comp) {
+  emu.reset();
+  comp.code.forEach((e, i) => emu.sw(i * 4, e.word));
+}
+
+// ── Run until halted ──────────────────────────────────────────────────────────
+function runAll(emu, maxSteps) {
+  const entries = [];
+  for (let i = 0; i < maxSteps + 4; i++) {
+    const e = emu.step();
+    entries.push(e);
+    if (emu.halted) break;
+  }
+  return entries;
+}
+
+const emu = new RV32IM(256);
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  TRACE PANEL
+// ══════════════════════════════════════════════════════════════════════════════
+
+const tList = document.getElementById('trace-list');
+let traceStats = { alu: 0, jmp: 0, total: 0 };
+
+function clearTrace() {
+  tList.innerHTML = '';
+  traceStats = { alu: 0, jmp: 0, total: 0 };
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('st-alu').textContent   = traceStats.alu;
+  document.getElementById('st-jmp').textContent   = traceStats.jmp;
+  document.getElementById('st-total').textContent = traceStats.total + ' instr';
+}
+
+function addSep(label) {
+  const d = document.createElement('div');
+  d.className = 'ti t-sep';
+  d.textContent = '── ' + label + ' ──';
+  tList.appendChild(d);
+}
+
+async function addEntries(entries) {
+  const delay = SPEED_MS[speedIdx];
+  for (const e of entries) {
+    const row = document.createElement('div');
+    row.className = 'ti t-' + e.type;
+    row.innerHTML =
+      `<span class="addr">${(e.pc >>> 0).toString(16).padStart(4, '0')}</span>` +
+      `<span class="asm">${e.asm}</span>`;
+    tList.appendChild(row);
+    tList.scrollTop = 999999;
+    traceStats.total++;
+    if (e.type === 'alu')  traceStats.alu++;
+    if (e.type === 'jump') traceStats.jmp++;
+    updateStats();
+    if (delay > 0) await new Promise(r => setTimeout(r, delay));
+  }
+}
+
+// ── Register display ──────────────────────────────────────────────────────────
+function updateRegDisplay() {
+  const el = document.getElementById('reg-rows');
+  // Show the registers the compiler actually uses: x0, x1-x15, x10 (result)
+  const SHOW = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  let html = '';
+  for (const i of SHOW) {
+    const v   = emu.x[i] | 0;
+    const dec = v.toString();
+    const hex = '0x' + (v >>> 0).toString(16).padStart(8, '0');
+    const isResult = (i === 10);
+    html += `<div class="reg-row${isResult ? ' ret' : ''}">` +
+      `<span class="reg-name">x${i}</span>` +
+      `<span class="reg-val">${dec}</span>` +
+      `<span class="reg-hex">${hex}</span>` +
+      `</div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  CALCULATOR UI
+// ══════════════════════════════════════════════════════════════════════════════
+
+let calcExpr    = '';
+let calcAns     = 0;
+let calcRunning = false;
+let lastResult  = null;
+let afterEquals = false;   // true after = is pressed; next digit starts a fresh expression
+
+function fmtMain(v) {
+  v = v | 0;
+  if (dispMode === 'hex')
+    return '0x' + (v >>> 0).toString(16).toUpperCase().padStart(8, '0');
+  return v.toString();
+}
+function fmtSub(v) {
+  v = v | 0;
+  if (dispMode === 'hex')
+    return v.toString();   // decimal secondary when primary is hex
+  return '0x' + (v >>> 0).toString(16).toUpperCase().padStart(8, '0');
+}
+
+function updateDisplay(val) {
+  document.getElementById('expr-disp').textContent = calcExpr || '0';
+  if (val !== undefined && val !== null) {
+    document.getElementById('val-disp').textContent = fmtMain(val);
+    document.getElementById('sub-disp').textContent = fmtSub(val);
+  } else {
+    document.getElementById('val-disp').textContent = '';
+    document.getElementById('sub-disp').textContent = '';
+  }
+}
+
+function kn(ch)  {
+  if (calcRunning) return;
+  // After =: a digit starts a brand-new expression (discard old one)
+  if (afterEquals) { calcExpr = ''; afterEquals = false; }
+  // In HEX mode: auto-prepend 0x when starting a new number token
+  if (dispMode === 'hex' && !/0x[0-9a-fA-F]*$/.test(calcExpr)) {
+    calcExpr += '0x';
+  }
+  calcExpr += ch;
+  updateDisplay();
+}
+function kop(tok) {
+  if (calcRunning) return;
+  const decoded = tok
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  // After =: an operator continues from the result (e.g. press + → "ANS+")
+  if (afterEquals) {
+    calcExpr = calcAns.toString();
+    afterEquals = false;
+  }
+  calcExpr += decoded;
+  updateDisplay();
+}
+function kclr()  { calcExpr = ''; lastResult = null; afterEquals = false; updateDisplay(0); updateProgPanel(0); }
+function kbs()   {
+  if (calcRunning) return;
+  afterEquals = false;
+  calcExpr = calcExpr.slice(0, -1) || '';
+  // Clean up orphaned 0x prefix left after backspacing the last hex digit
+  if (calcExpr.endsWith('0x')) calcExpr = calcExpr.slice(0, -2);
+  updateDisplay();
+}
+function kneg()  { if (calcRunning) return; afterEquals = false; calcExpr = '-(' + calcExpr + ')'; updateDisplay(); }
+function knot()  { if (calcRunning) return; afterEquals = false; calcExpr = '~(' + calcExpr + ')'; updateDisplay(); }
+function kans()  { if (calcRunning) return; afterEquals = false; calcExpr += calcAns.toString(); updateDisplay(); }
+
+async function keq() {
+  if (calcRunning || !calcExpr) return;
+  calcRunning = true;
+
+  try {
+    const tokens  = tokenize(calcExpr);
+    const ast     = parse(tokens);
+    const comp    = new Compiler().compile(ast);
+    loadProgram(emu, comp);
+    const entries = runAll(emu, comp.code.length);
+    const result  = emu.x[10] | 0;   // a0 = return value register
+
+    calcAns    = result;
+    lastResult = result;
+    afterEquals = true;
+
+    addSep(calcExpr);
+    await addEntries(entries);
+    updateDisplay(result);
+    updateProgPanel(result);
+    updateRegDisplay();
+  } catch (err) {
+    document.getElementById('val-disp').textContent = 'Error: ' + err.message;
+    document.getElementById('sub-disp').textContent = '';
+    lastResult = null;
+  }
+
+  calcRunning = false;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PROGRAMMER PANEL  — bit grid + multi-base display
+// ══════════════════════════════════════════════════════════════════════════════
+
+function updateProgPanel(v) {
+  v = v | 0;
+  const u = v >>> 0;
+
+  // Hexadecimal
+  const hex = u.toString(16).toUpperCase().padStart(8, '0');
+  document.getElementById('b-hex').textContent =
+    '0x' + hex.slice(0,4) + ' ' + hex.slice(4);
+
+  // Decimal (signed)
+  document.getElementById('b-dec').textContent = v.toString();
+
+  // Octal (unsigned)
+  document.getElementById('b-oct').textContent = '0o' + u.toString(8);
+
+  // Binary — four groups of 8 (bytes)
+  const bin = u.toString(2).padStart(32, '0');
+  document.getElementById('b-bin').textContent =
+    bin.slice(0,8) + ' ' + bin.slice(8,16) + ' ' + bin.slice(16,24) + ' ' + bin.slice(24);
+
+  // Bit buttons
+  document.querySelectorAll('.bit-btn').forEach(btn => {
+    const bit = +btn.dataset.bit;
+    const set = (u >>> bit) & 1;
+    btn.textContent = set ? '1' : '0';
+    btn.classList.toggle('on', !!set);
+  });
+}
+
+// Toggle one bit in the current result and instantly reflect it
+function toggleBit(bit) {
+  if (calcRunning) return;
+  const cur    = (lastResult !== null ? lastResult : 0) | 0;
+  const newVal = (cur ^ (1 << bit)) | 0;
+  lastResult   = newVal;
+  calcAns      = newVal;
+  calcExpr     = newVal.toString();
+  afterEquals  = true;
+  updateDisplay(newVal);
+  updateProgPanel(newVal);
+}
+
+function initProgPanel() {
+  const grid   = document.getElementById('bit-grid');
+  const lblRow = document.getElementById('bit-lbl-row');
+
+  // Build from bit 31 (MSB) down to bit 0 (LSB)
+  // Layout: [B3: 31..24] gap [B2: 23..16] gap [B1: 15..8] gap [B0: 7..0]
+  for (let i = 31; i >= 0; i--) {
+    // Gap between bytes (every 8 bits) and nibbles (every 4 bits)
+    if (i < 31) {
+      const atByteBoundary = (i + 1) % 8 === 0;
+      const atNibble       = (i + 1) % 4 === 0;
+      const sepClass       = atByteBoundary ? 'bit-byte-sep' : (atNibble ? 'bit-nib-sep' : null);
+      if (sepClass) {
+        grid.appendChild(Object.assign(document.createElement('span'), { className: sepClass }));
+        lblRow.appendChild(Object.assign(document.createElement('span'), { className: sepClass }));
+      }
+    }
+
+    // Label: show bit number only at byte MSBs (31, 23, 15, 7) for clarity
+    const lbl = document.createElement('span');
+    lbl.className = 'bit-lbl';
+    lbl.textContent = (i % 8 === 7) ? i : '';
+    lblRow.appendChild(lbl);
+
+    // Bit toggle button
+    const btn = document.createElement('button');
+    btn.className   = 'bit-btn';
+    btn.textContent = '0';
+    btn.dataset.bit = i;
+    btn.title       = `bit ${i}  (2^${i} = ${(1 << i) >>> 0})`;
+    btn.onclick     = () => toggleBit(i);
+    grid.appendChild(btn);
+  }
+
+  updateProgPanel(0);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+updateDisplay(0);
+initProgPanel();
+
+// ── Keyboard support ──────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (calcRunning) return;
+  if (e.key === 'Enter')                keq();
+  else if (e.key === 'Backspace')       kbs();
+  else if (e.key === 'Escape')          kclr();
+  else if (/^[0-9]$/.test(e.key))      kn(e.key);
+  else if (e.key === '+')               kop('+');
+  else if (e.key === '-')               kop('-');
+  else if (e.key === '*')               kop('*');
+  else if (e.key === '/')               kop('/');
+  else if (e.key === '%')               kop('%');
+  else if (e.key === '(')               kop('(');
+  else if (e.key === ')')               kop(')');
+  else if (e.key === '&')               kop('&');
+  else if (e.key === '|')               kop('|');
+  else if (e.key === '^')               kop('^');
+  else if (e.key === '~')               kop('~');
+});
+</script>
+</body>
+</html>
