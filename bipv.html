@@ -366,10 +366,10 @@
     India's <strong>VEDAS portal</strong> (Visualisation of Earth Observation Data and Archival System) hosts 3D city models derived from <strong>Cartosat-2/3 satellite data</strong>. These LOD-1 models extrude building footprints to uniform heights, capturing the urban form of any Indian city. The problem: no open-source tool existed to use these models for <strong>citywide Building Integrated Photovoltaic (BIPV) potential estimation</strong> at scale.
   </p>
   <p>
-    Commercial tools like Ladybug/Rhinoceros work at single-building or neighbourhood level and become unstable at city scale. ESRI CityEngine and Cesium handle visualisation but not irradiance simulation. <strong>No public-domain software addressed citywide BIPV estimation.</strong>
+    Popular commercial CAD tools for Architecture and Civil Engineering uses like Ladybug/Rhinoceros work well only at single-building or neighbourhood levels, losing stability and scaling for city-scale use cases. ESRI CityEngine and Cesium; popular tools for creating 3D globes and 2D maps in a web browser, can handle visualisation, but not irradiance simulation. <strong>No public-domain software addressed citywide BIPV estimation.</strong>
   </p>
   <p>
-    The desired outcome: given a date and irradiance parameters, generate a 3D city model rendered per-face by solar energy potential, identifying optimal BIPV zones for architects, urban planners, and policymakers.
+    The desired outcome therefore was: given a date and irradiance parameters, generate a 3D city model rendered per-face by solar energy potential, identifying optimal BIPV zones for architects, urban planners, and policymakers.
   </p>
 
   <hr class="divider">
@@ -510,24 +510,19 @@
 
   <!-- VISUALISATION -->
   <div class="section-label">Visualisation</div>
-  <h2>Cesium.js interactive citywide map</h2>
+  <h2>GeoJSON attribute map on Cesium.js</h2>
 
   <p>
-    Ray tracer output is serialised to <strong>GeoJSON</strong>: each building wall and rooftop segment carries its computed annual irradiance value as a feature attribute. Cesium.js renders these as coloured 3D polygons draped over satellite imagery, with a <strong>date picker</strong> that recalculates sun position and re-renders irradiance for any day of the year.
+    Once the Unity compute pass finishes, each building face's irradiance value is embedded as a feature attribute in a <strong>GeoJSON</strong> export — one polygon per wall segment or rooftop tile, carrying its annual irradiance in Wh/m². The UV map acts as the intermediate: face IDs in the mesh map to GeoJSON feature IDs, so every polygon knows exactly which baked value to carry. Cesium.js loads the GeoJSON, maps the irradiance attribute to a solar colour scale, and drapes the coloured polygons over satellite imagery as a 3D cityscape.
   </p>
   <p>
-    At city zoom level the gradient appears subtle &mdash; correctly so. India's near-equatorial position means rooftops everywhere receive high irradiance, and facade differences are real but physically small. <strong>Zoom into any block and the 1&nbsp;m&sup2; tile resolution reveals fine-grained shadow patterns</strong> where adjacent buildings cast partial occlusion across the day.
+    No irradiance computation happens in the browser — the viewer reads pre-baked values and renders them. At city zoom level the district-level gradient is visible; zoom into any block and the <strong>1&nbsp;m&sup2; tile resolution reveals fine-grained shadow patterns</strong> where adjacent buildings cast partial occlusion across neighbouring faces.
   </p>
-
-  <div class="img-frame">
-    <img src="BIPV_SIH/Final_Website_Ahmedabad.png" alt="Final KiranShakti website - Ahmedabad district with irradiance overlay">
-  </div>
-  <div class="img-caption">KiranShakti web app &mdash; Ahmedabad district. Red/orange = high BIPV potential, blue/purple = lower potential. Date control at top-left; timeline scrubber at bottom for intra-day animation.</div>
 
   <div class="img-frame">
     <img src="BIPV_SIH/Irradiance_Per_Face.jpg" alt="Close-up of per-face irradiance in Cesium - red rooftops and blue-purple facades">
   </div>
-  <div class="img-caption">Close-up: per-face irradiance visible at building level. Rooftop faces (horizontal, full sun exposure) render red. East/west facades show intermediate values. North-facing walls and occluded faces render blue-purple.</div>
+  <div class="img-caption">Per-face irradiance at building level. Rooftop faces render red (high annual irradiance, unobstructed). East/west facades show intermediate values. North-facing and occluded faces render blue-purple.</div>
 
   <hr class="divider">
 
@@ -537,7 +532,7 @@
 
   <div class="decision-block">
     <div class="d-label">Unity over CAD / GIS tools</div>
-    Game engines are built to render and process <span class="hi">large numbers of meshes simultaneously</span>. Ladybug/Rhinoceros degrades badly past a few hundred buildings. Unity's ECS and compute shader pipeline handles an entire city district without per-frame CPU bottlenecks. The BVH is built once at load; ray queries at runtime are pure GPU work.
+    Game engines are built to render and process <span class="hi">large numbers of meshes simultaneously</span>. Ladybug/Rhinoceros degrades badly past a few hundred buildings. Unity's ECS and compute shader pipeline handles an entire city district without per-frame CPU bottlenecks. The BVH is built once; shadow fractions and irradiance are computed entirely on the GPU via compute shaders, then baked into a UV map and exported as GeoJSON attributes. The browser viewer reads pre-baked values — irradiance computation never runs at view time.
   </div>
 
   <div class="decision-block">
@@ -547,7 +542,7 @@
 
   <div class="decision-block">
     <div class="d-label">LOD-1 is sufficient for urban-scale assessment</div>
-    LOD-1 extrudes footprints to flat-top boxes. Complex roof geometries (pitched, domed, stepped) are not captured. <span class="warn">This is a known limitation</span> &mdash; but for policy-scale decisions (which districts, which building clusters) the flat-top model introduces acceptable error. The paper validates this: results correctly identify high-potential zones even without LOD-2 geometry.
+    LOD-1 extrudes footprints to flat-top boxes. Complex roof geometries (pitched, domed, stepped) are not captured. <span class="warn">This is a known limitation</span>; but for policy-scale decisions (which districts, which building clusters) the flat-top model introduces acceptable error. The paper validates this: results correctly identify high-potential zones even without LOD-2 geometry.
   </div>
 
   <div class="decision-block">
