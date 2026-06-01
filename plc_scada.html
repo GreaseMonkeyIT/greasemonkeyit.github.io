@@ -386,20 +386,22 @@
   <h2>The Problem</h2>
 
   <p>
-    During the internship at Cummins Turbo Technologies, the engine test cells operated on an
-    Allen-Bradley MicroLogix 1400 PLC. The PLC held hundreds of data registers — bit flags,
-    integer counters, float measurements, timer accumulators — spread across multiple SLC-style
+    During the internship at Cummins Turbo Technologies, the turbocharger test cells operated on an
+    Allen-Bradley MicroLogix 1400 PLC. The PLC held hundreds of data registers: bit flags,
+    integer counters, float measurements, timer accumulators; the like, spread across multiple SLC-style
     data files.
   </p>
   <p>
-    There was no remote visibility into live tag values. Engineers had to walk to the HMI terminal
-    to check register state, and there was no mechanism to label, group, or log tags by product line
-    or station. Writing a test value meant navigating the PLC programmer software manually.
+    The plant was a small dedicated turbocharger manufacturing and engine remanufacturing facility 
+    with no SCADA system for its PLCs. Engineers had no remote visibility into live tag values, and fault 
+    diagnosis meant manually cycling through the script file to identify which tag had failed and what 
+    the register state was. There was no way to label, group, or log tags by product line or station, and 
+    writing a test value required navigating the PLC programmer software by hand.
   </p>
   <p>
     The goal was a lightweight, self-contained SCADA stack: <strong>read all tags continuously,
-    expose them over a REST API, and give both a GUI and a CLI for live inspection and writes</strong>
-    — without requiring any proprietary SCADA platform.
+    expose them over a REST API, and give both a GUI and a CLI for live inspection and writes</strong>; 
+    without requiring any proprietary SCADA platform.
   </p>
 
   <hr class="divider">
@@ -409,10 +411,10 @@
   <h2>Architecture</h2>
 
   <p>
-    The stack has four components. The tag server is the core — it owns the in-memory tag store,
+    The stack has four components. The tag server is the core. It owns the in-memory tag store,
     probes the PLC on startup and at regular intervals, and serves a REST API. The bridge provides
     continuous 2-second diff-and-push sync between the PLC and the server, filling the gaps between
-    server probes. The GUI and CLI are independent clients that talk only to the REST API.
+    server probes. The GUI and CLI (for headless setups) are independent clients that talk only to the REST API.
   </p>
 
   <div class="arch-diagram">

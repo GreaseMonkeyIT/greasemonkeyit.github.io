@@ -459,23 +459,39 @@
     font-family: var(--mono);
     font-size: 14.5px;
     color: var(--text-dim);
-    min-width: 160px;
-  }
-  .skill-bar {
     flex: 1;
-    height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
   }
-  .skill-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: var(--accent);
-    transition: width 1s cubic-bezier(.16,1,.3,1);
+  .skill-pips {
+    display: flex;
+    gap: 4px;
+    align-items: center;
   }
-  .skill-fill.hw { background: var(--accent2); }
-  .skill-fill.ai { background: var(--accent3); }
+  .skill-pips span {
+    width: 20px;
+    height: 6px;
+    border-radius: 2px;
+    background: var(--border-hi);
+  }
+  .skill-pips[data-level="1"] span:nth-child(-n+1),
+  .skill-pips[data-level="2"] span:nth-child(-n+2),
+  .skill-pips[data-level="3"] span:nth-child(-n+3),
+  .skill-pips[data-level="4"] span:nth-child(-n+4),
+  .skill-pips[data-level="5"] span:nth-child(-n+5) { background: var(--accent); }
+  .skill-pips.hw[data-level="1"] span:nth-child(-n+1),
+  .skill-pips.hw[data-level="2"] span:nth-child(-n+2),
+  .skill-pips.hw[data-level="3"] span:nth-child(-n+3),
+  .skill-pips.hw[data-level="4"] span:nth-child(-n+4),
+  .skill-pips.hw[data-level="5"] span:nth-child(-n+5) { background: var(--accent2); }
+  .skill-pips.ai[data-level="1"] span:nth-child(-n+1),
+  .skill-pips.ai[data-level="2"] span:nth-child(-n+2),
+  .skill-pips.ai[data-level="3"] span:nth-child(-n+3),
+  .skill-pips.ai[data-level="4"] span:nth-child(-n+4),
+  .skill-pips.ai[data-level="5"] span:nth-child(-n+5) { background: var(--accent3); }
+  .skill-pips.tools[data-level="1"] span:nth-child(-n+1),
+  .skill-pips.tools[data-level="2"] span:nth-child(-n+2),
+  .skill-pips.tools[data-level="3"] span:nth-child(-n+3),
+  .skill-pips.tools[data-level="4"] span:nth-child(-n+4),
+  .skill-pips.tools[data-level="5"] span:nth-child(-n+5) { background: var(--accent4); }
 
   /* CERTS */
   .cert-grid {
@@ -510,6 +526,16 @@
     font-size: 13px;
     color: var(--accent3);
   }
+  .cert-link {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    margin-top: auto;
+    padding-top: 10px;
+    letter-spacing: .04em;
+  }
+  .cert-link:hover { text-decoration: underline; }
 
   /* ── CONTACT ── */
   .contact-grid {
@@ -1666,7 +1692,7 @@
     </div><!-- /hero-main -->
     <div class="hero-stats">
       <div class="stat">
-        <div class="stat-val">12<span>+</span></div>
+        <div class="stat-val">10<span>+</span></div>
         <div class="stat-label">Projects completed</div>
       </div>
       <div class="stat">
@@ -1686,7 +1712,7 @@
       <span class="section-index">01</span>
       <h2 class="section-title">Projects</h2>
       <div class="section-line"></div>
-      <span class="section-tail">[ <span class="hi">12</span> NODES ] DOMAIN: <span class="hi" id="tail-dom">ALL</span></span>
+      <span class="section-tail">[ <span class="hi">10</span> NODES ] DOMAIN: <span class="hi" id="tail-dom">ALL</span></span>
     </div>
 
     <!-- VIEW TOGGLE — center stage -->
@@ -1757,7 +1783,7 @@
       <span class="section-index">02</span>
       <h2 class="section-title">Skills</h2>
       <div class="section-line"></div>
-      <span class="section-tail">[ <span class="hi">17</span> ENTRIES ]</span>
+      <span class="section-tail">[ <span class="hi">19</span> ENTRIES ]</span>
     </div>
 
     <div class="skills-layout">
@@ -1766,68 +1792,76 @@
         <div class="skill-group-title">Embedded & Hardware</div>
         <div class="skill-list">
           <div class="skill-item">
-            <span class="skill-name">Embedded Linux (Yocto/Buildroot)</span>
-            <div class="skill-bar"><div class="skill-fill hw" style="width:90%"></div></div>
+            <span class="skill-name">Linux Build System (Yocto/Buildroot)</span>
+            <div class="skill-pips hw" data-level="2"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
-            <span class="skill-name">KiCAD PCB Design</span>
-            <div class="skill-bar"><div class="skill-fill hw" style="width:82%"></div></div>
+            <span class="skill-name">Assembly (x86-64, ARM, RV32/64)</span>
+            <div class="skill-pips hw" data-level="2"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
-            <span class="skill-name">C / C++</span>
-            <div class="skill-bar"><div class="skill-fill hw" style="width:88%"></div></div>
+            <span class="skill-name">ESP-IDF & Dev Boards</span>
+            <div class="skill-pips hw" data-level="3"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
-            <span class="skill-name">LoRaWAN / RF</span>
-            <div class="skill-bar"><div class="skill-fill hw" style="width:72%"></div></div>
+            <span class="skill-name">Protocols (I2C, UART, SPI)</span>
+            <div class="skill-pips hw" data-level="4"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
-            <span class="skill-name">SPICE Simulation</span>
-            <div class="skill-bar"><div class="skill-fill hw" style="width:78%"></div></div>
+            <span class="skill-name">PLC Programming</span>
+            <div class="skill-pips hw" data-level="3"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+          <div class="skill-item">
+            <span class="skill-name">FPGA Platforms (Xilinx, Arty S7)</span>
+            <div class="skill-pips hw" data-level="2"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
         </div>
       </div>
 
       <div class="skill-group">
-        <div class="skill-group-title">RTL & Digital Design</div>
+        <div class="skill-group-title">Electrical, RTL & Digital Design</div>
         <div class="skill-list">
           <div class="skill-item">
             <span class="skill-name">SystemVerilog</span>
-            <div class="skill-bar"><div class="skill-fill" style="width:80%"></div></div>
+            <div class="skill-pips" data-level="3"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
             <span class="skill-name">Cocotb / Verilator</span>
-            <div class="skill-bar"><div class="skill-fill" style="width:76%"></div></div>
+            <div class="skill-pips" data-level="3"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
             <span class="skill-name">Yosys Synthesis</span>
-            <div class="skill-bar"><div class="skill-fill" style="width:68%"></div></div>
+            <div class="skill-pips" data-level="2"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
             <span class="skill-name">Logisim Digital Logic</span>
-            <div class="skill-bar"><div class="skill-fill" style="width:82%"></div></div>
+            <div class="skill-pips" data-level="4"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+          <div class="skill-item">
+            <span class="skill-name">SPICE Simulation</span>
+            <div class="skill-pips" data-level="4"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
         </div>
       </div>
 
       <div class="skill-group">
-        <div class="skill-group-title">AI / ML & Software</div>
+        <div class="skill-group-title">Languages, Libraries, Frameworks</div>
         <div class="skill-list">
           <div class="skill-item">
             <span class="skill-name">PyTorch</span>
-            <div class="skill-bar"><div class="skill-fill ai" style="width:78%"></div></div>
+            <div class="skill-pips ai" data-level="2"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
-            <span class="skill-name">OpenVINO / Edge AI</span>
-            <div class="skill-bar"><div class="skill-fill ai" style="width:80%"></div></div>
+            <span class="skill-name">OpenCV, OpenVINO</span>
+            <div class="skill-pips ai" data-level="2"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
-            <span class="skill-name">OpenCV</span>
-            <div class="skill-bar"><div class="skill-fill ai" style="width:82%"></div></div>
+            <span class="skill-name">C</span>
+            <div class="skill-pips ai" data-level="3"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
             <span class="skill-name">Python</span>
-            <div class="skill-bar"><div class="skill-fill ai" style="width:88%"></div></div>
+            <div class="skill-pips ai" data-level="4"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
         </div>
       </div>
@@ -1837,19 +1871,19 @@
         <div class="skill-list">
           <div class="skill-item">
             <span class="skill-name">Git / Linux</span>
-            <div class="skill-bar"><div class="skill-fill" style="width:90%"></div></div>
-          </div>
-          <div class="skill-item">
-            <span class="skill-name">GCC / x86-64 ASM / AVX2</span>
-            <div class="skill-bar"><div class="skill-fill" style="width:70%"></div></div>
+            <div class="skill-pips tools" data-level="3"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
             <span class="skill-name">MATLAB / Simulink</span>
-            <div class="skill-bar"><div class="skill-fill" style="width:65%"></div></div>
+            <div class="skill-pips tools" data-level="2"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
           <div class="skill-item">
-            <span class="skill-name">FANUC Roboguide</span>
-            <div class="skill-bar"><div class="skill-fill" style="width:60%"></div></div>
+            <span class="skill-name">Schematic & Layout (KiCAD, EAGLE)</span>
+            <div class="skill-pips tools" data-level="4"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+          <div class="skill-item">
+            <span class="skill-name">LoRaWAN / RF</span>
+            <div class="skill-pips tools" data-level="3"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
         </div>
       </div>
@@ -1861,19 +1895,43 @@
       <span class="section-index" style="color:var(--accent2)">02.1</span>
       <h3 class="section-title" style="font-size:18px;">Certifications</h3>
       <div class="section-line"></div>
-      <span class="section-tail">[ <span class="hi">04</span> CERTS ]</span>
+      <span class="section-tail">[ <span class="hi">07</span> CERTS ]</span>
     </div>
 
     <div class="cert-grid">
       <div class="cert-card hud-frame">
-        <div class="cert-issuer">NPTEL / IIT Kharagpur</div>
-        <div class="cert-name">Internet of Things</div>
-        <div class="cert-date">2025 — Prof. Sudip Misra</div>
+        <div class="cert-issuer">NPTEL</div>
+        <div class="cert-name">Introduction to Internet of Things</div>
+        <a class="cert-link" href="https://drive.google.com/file/d/1_OVJlRMXlR6Css7UcNZ6k7EXAFV5VBee/view?usp=sharing" target="_blank">↗ View Certificate</a>
       </div>
       <div class="cert-card hud-frame">
-        <div class="cert-issuer">Samsung</div>
-        <div class="cert-name">ISWDP Fellowship</div>
-        <div class="cert-date">IISc-affiliated</div>
+        <div class="cert-issuer">NPTEL</div>
+        <div class="cert-name">Cryogenic Electronics for Quantum Computing</div>
+        <a class="cert-link" href="https://drive.google.com/file/d/1IXCDDXirFns9JEaqtmnD8d86ig5ID4IW/view?usp=sharing" target="_blank">↗ View Certificate</a>
+      </div>
+      <div class="cert-card hud-frame">
+        <div class="cert-issuer">IISc / Samsung SSIR / Synopsys</div>
+        <div class="cert-name">India Semiconductor Workforce Development Program</div>
+      </div>
+      <div class="cert-card hud-frame">
+        <div class="cert-issuer">IBM</div>
+        <div class="cert-name">Basics of Quantum Information</div>
+        <a class="cert-link" href="https://www.credly.com/earner/earned/badge/85f28ee1-05ae-43b3-98ce-207add3fda41" target="_blank">↗ View Badge</a>
+      </div>
+      <div class="cert-card hud-frame">
+        <div class="cert-issuer">NVIDIA</div>
+        <div class="cert-name">Building Transformer-Based NLP Applications</div>
+        <a class="cert-link" href="https://learn.nvidia.com/certificates?id=Q7HnPrf1QaSen2QfSwWwfQ" target="_blank">↗ View Certificate</a>
+      </div>
+      <div class="cert-card hud-frame">
+        <div class="cert-issuer">NVIDIA</div>
+        <div class="cert-name">Fundamentals of Deep Learning</div>
+        <a class="cert-link" href="https://learn.nvidia.com/certificates?id=1jC98bHzSHiHctk1qxSTaQ" target="_blank">↗ View Certificate</a>
+      </div>
+      <div class="cert-card hud-frame">
+        <div class="cert-issuer">NPTEL</div>
+        <div class="cert-name">Digital System Design</div>
+        <a class="cert-link" href="https://drive.google.com/file/d/1gHN55vXLh2IV2dWhexDfSSlmCGragE2n/view?usp=sharing" target="_blank">↗ View Certificate</a>
       </div>
     </div>
   </section>
@@ -2590,6 +2648,28 @@
       linkNoLink: false,
     },
     {
+      title: 'KiranShakti — BIPV Urban Solar Mapper',
+      category: 'AI · GEOSPATIAL',
+      dataCat: 'ai',
+      featured: false,
+      badgeText: 'SIH 2024 Finalist',
+      badgeCls: 'card-badge badge-finalist',
+      desc: 'Team lead. ISRO problem SIH1739 - citywide Building Integrated Photovoltaic potential assessment. Custom BVH ray tracer in Unity compute shader maps per-face solar irradiance at 1m² resolution onto LOD-1 3D city models, visualised live on CesiumJS. Published IEC 2025.',
+      tags: [
+        {text:'Unity Compute Shader',cls:'tag t-sw'},{text:'BVH Ray Tracer',cls:'tag t-ai'},
+        {text:'CesiumJS',cls:'tag t-sw'},{text:'QGIS',cls:'tag t-sw'},
+        {text:'EPW Weather Data',cls:'tag t-hw'},{text:'Cartosat / OSM',cls:'tag t-hw'},
+        {text:'C#',cls:'tag t-sw'},{text:'PostgreSQL',cls:'tag t-sw'}
+      ],
+      hasCalc: false,
+      cardAction: 'openBIPV()',
+      linkText: 'IEC 2025 Paper →',
+      linkHref: 'https://drive.google.com/file/d/13BLFb1R757i6lolNfwaavvqCLBmjKg93/view?usp=sharing',
+      linkOnclick: '',
+      linkTarget: '_blank',
+      linkNoLink: false,
+    },
+    {
       title: 'IoT PV Digital Twin',
       category: 'IOT · EMBEDDED · AI',
       dataCat: 'iot embedded ai',
@@ -2686,28 +2766,6 @@
       cardAction: 'openMicromouse()',
       linkText: 'View on GitHub →',
       linkHref: 'https://github.com/GreaseMonkeyIT/ESP32-Micromouse',
-      linkOnclick: '',
-      linkTarget: '_blank',
-      linkNoLink: false,
-    },
-    {
-      title: 'KiranShakti — BIPV Urban Solar Mapper',
-      category: 'AI · GEOSPATIAL',
-      dataCat: 'ai',
-      featured: false,
-      badgeText: 'SIH 2024 Finalist',
-      badgeCls: 'card-badge badge-finalist',
-      desc: 'Team lead. ISRO problem SIH1739 - citywide Building Integrated Photovoltaic potential assessment. Custom BVH ray tracer in Unity compute shader maps per-face solar irradiance at 1m² resolution onto LOD-1 3D city models, visualised live on CesiumJS. Published IEC 2025.',
-      tags: [
-        {text:'Unity Compute Shader',cls:'tag t-sw'},{text:'BVH Ray Tracer',cls:'tag t-ai'},
-        {text:'CesiumJS',cls:'tag t-sw'},{text:'QGIS',cls:'tag t-sw'},
-        {text:'EPW Weather Data',cls:'tag t-hw'},{text:'Cartosat / OSM',cls:'tag t-hw'},
-        {text:'C#',cls:'tag t-sw'},{text:'PostgreSQL',cls:'tag t-sw'}
-      ],
-      hasCalc: false,
-      cardAction: 'openBIPV()',
-      linkText: 'IEC 2025 Paper →',
-      linkHref: 'https://drive.google.com/file/d/13BLFb1R757i6lolNfwaavvqCLBmjKg93/view?usp=sharing',
       linkOnclick: '',
       linkTarget: '_blank',
       linkNoLink: false,
