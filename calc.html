@@ -334,7 +334,7 @@ function setDisp(m) {
 //  This is the instruction set implemented in the Compiler below.
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Signed 32×32 → upper 32 bits  (BigInt for correctness, avoids float precision)
+// Signed 32×32 : upper 32 bits  (BigInt for correctness, avoids float precision)
 function mulh32s(a, b) {
   const r = BigInt(a | 0) * BigInt(b | 0);
   return Number((r >> 32n) & 0xFFFFFFFFn) | 0;
@@ -405,7 +405,7 @@ class RV32IM {
             case 5:  // DIVU: unsigned; ÷0 = 0xFFFFFFFF
               res = (bu === 0) ? -1 : (au / bu | 0);
               asm = `divu   x${rd}, x${rs1}, x${rs2}  ; ${res >>> 0}`; break;
-            case 6:  // REM: signed; %0 = dividend; overflow → 0
+            case 6:  // REM: signed; %0 = dividend; overflow : 0
               res = (b === 0) ? a : (a === -0x80000000 && b === -1) ? 0 : (a % b | 0);
               asm = `rem    x${rd}, x${rs1}, x${rs2}  ; ${res}`; break;
             case 7:  // REMU: unsigned; %0 = dividend
@@ -572,8 +572,8 @@ function tokenize(src) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  PARSER  →  AST
-//  Operator precedence (low → high), matching C / Java conventions:
+//  PARSER  :  AST
+//  Operator precedence (low to high), matching C / Java conventions:
 //    | < ^ < & < <<  >>  >>> < + - < * / % < unary (- ~) < atom
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -623,7 +623,7 @@ function parse(toks) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  COMPILER  AST → RV32IM machine code
+//  COMPILER  AST to RV32IM machine code
 //
 //  Registers used:
 //    x0  = zero (hardwired)
@@ -712,7 +712,7 @@ class Compiler {
       }
 
       case 'neg': {
-        // Unary minus: SUB rd, x0, rs  →  rd = 0 − rs
+        // Unary minus: SUB rd, x0, rs  to  rd = 0 − rs
         const v = this.cNode(node.operand);
         this.emit(
           encR(0x20, v, 0, 0, v, 0x33),
@@ -722,7 +722,7 @@ class Compiler {
       }
 
       case 'not': {
-        // Bitwise NOT: XORI rd, rs, -1  →  rd = rs XOR 0xFFFFFFFF
+        // Bitwise NOT: XORI rd, rs, -1  to  rd = rs XOR 0xFFFFFFFF
         const v = this.cNode(node.operand);
         this.emit(
           encI(-1, v, 4, v, 0x13),
@@ -735,7 +735,7 @@ class Compiler {
         const l = this.cNode(node.left);   // result lives in l
         const r = this.cNode(node.right);  // result lives in r (allocated after l)
 
-        // Map operator → [f7, f3, opcode, mnemonic]
+        // Map operator: [f7, f3, opcode, mnemonic]
         const OPS = {
           '+':   [0x00, 0, 0x33, 'add  '],
           '-':   [0x20, 0, 0x33, 'sub  '],
@@ -768,7 +768,7 @@ class Compiler {
     }
   }
 
-  // ── Top-level compile: AST → instruction stream ────────────────────────────
+  // ── Top-level compile: AST to instruction stream ────────────────────────────
   compile(ast) {
     const result = this.cNode(ast);
 
@@ -776,11 +776,11 @@ class Compiler {
     if (result !== 10) {
       this.emit(
         encR(0x00, result, 0, 0, 10, 0x33),
-        `add    x10, x0, x${result}  ; → a0 (return)`
+        `add    x10, x0, x${result}  ; -> a0 (return)`
       );
     }
 
-    // Halt: JAL x0, 0  →  jump-to-self, detected as infinite loop
+    // Halt: JAL x0, 0  ->  jump-to-self, detected as infinite loop
     this.emit(encJAL(0, 0), `jal    x0, 0          ; halt`, 'jump');
     return this;
   }
@@ -918,7 +918,7 @@ function kop(tok) {
   if (calcRunning) return;
   const decoded = tok
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  // After =: an operator continues from the result (e.g. press + → "ANS+")
+  // After =: an operator continues from the result (e.g. press + "ANS+")
   if (afterEquals) {
     calcExpr = calcAns.toString();
     afterEquals = false;
