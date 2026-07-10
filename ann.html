@@ -6,29 +6,29 @@
 <title>Analog Neural Network — XOR & Iris Classifier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:         #0a0a0c;
-    --bg2:        #0f0f12;
-    --bg3:        #141418;
-    --bg-card:    #111114;
-    --bg-line:    #16161a;
-    --border:     #1e1e24;
-    --border-hi:  #2a2a33;
-    --text:       #e8e8f0;
-    --text-dim:   #8888a0;
-    --text-faint: #6a6a85;
-    --accent:     #7eb8f7;
-    --accent2:    #f7c97e;
-    --accent3:    #7ef7b8;
-    --accent4:    #f77eb8;
-    --amber:      #f0b44a;
-    --green:      #6bcb8b;
+    --bg:         #000000;
+    --bg2:        #060606;
+    --bg3:        #0c0c0c;
+    --bg-card:    #080808;
+    --bg-line:    #0e0e0e;
+    --border:     #1c1c1c;
+    --border-hi:  #2a2a2a;
+    --text:       #f4f4f4;
+    --text-dim:   #e6e6e6;
+    --text-faint: #aaaaaa;
+    --accent:     #82beff;
+    --accent2:    #ffc86a;
+    --accent3:    #82ffce;
+    --accent4:    #ff82c8;
+    --amber:      #ffc86a;
+    --green:      #82ffce;
     --red:        #e05c5c;
     --purple:     #b48ef7;
     --mono: 'IBM Plex Mono', monospace;
-    --sans: 'Inter', sans-serif;
+    --sans: 'IBM Plex Sans', sans-serif;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,23 +48,10 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
 
-  /* ── SUBTLE GRID ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(126,184,247,.022) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(126,184,247,.022) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
   /* ── CLOSE BUTTON ── */
   #close-btn {
     display: none; position: fixed; top: 16px; right: 20px; z-index: 100;
-    background: rgba(10,10,12,.9); backdrop-filter: blur(8px);
+    background: rgba(0,0,0,.9); backdrop-filter: blur(8px);
     border: 1px solid var(--border-hi); color: var(--text-dim);
     font-family: var(--mono); font-size: 12px; letter-spacing: .08em;
     padding: 7px 14px; cursor: pointer; border-radius: 4px;
@@ -79,9 +66,9 @@
   .hero-sub { font-family: var(--mono); font-size: 13px; color: var(--text-dim); letter-spacing: .04em; margin-bottom: 28px; }
   .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 44px; }
   .htag { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; padding: 4px 10px; border-radius: 3px; border: 1px solid; }
-  .htag.hw { color: var(--accent2); border-color: rgba(247,201,126,.25); background: rgba(247,201,126,.06); }
-  .htag.sw { color: var(--accent);  border-color: rgba(126,184,247,.25); background: rgba(126,184,247,.06); }
-  .htag.ai { color: var(--accent3); border-color: rgba(126,247,184,.25); background: rgba(126,247,184,.06); }
+  .htag.hw { color: var(--accent2); border-color: rgba(255,200,106,.25); background: rgba(255,200,106,.06); }
+  .htag.sw { color: var(--accent);  border-color: rgba(130,190,255,.25); background: rgba(130,190,255,.06); }
+  .htag.ai { color: var(--accent3); border-color: rgba(130,255,206,.25); background: rgba(130,255,206,.06); }
 
   /* ── CONTENT ── */
   .page-body {
@@ -128,7 +115,7 @@
   .section code {
     font-family: var(--mono);
     font-size: 13px;
-    background: #1c1c22;
+    background: #1c1c1c;
     padding: 1px 5px;
     border-radius: 2px;
     color: var(--accent);
@@ -136,7 +123,7 @@
 
   /* ── IMAGE FRAMES ── */
   .img-frame {
-    background: #0a0a0c;
+    background: #000000;
     border: 1px solid var(--border);
     padding: 16px;
     margin: 16px 0;
@@ -173,7 +160,7 @@
     margin: 16px 0;
   }
   .grid-cell {
-    background: #0a0a0c;
+    background: #000000;
     padding: 12px;
     text-align: center;
   }
@@ -199,7 +186,7 @@
     margin: 16px 0;
   }
   .xor-split > div {
-    background: #0a0a0c;
+    background: #000000;
     padding: 16px;
   }
 
@@ -212,7 +199,7 @@
     margin-bottom: 12px;
   }
   .result-table th {
-    background: #1a1a1f;
+    background: #141414;
     color: var(--text-dim);
     font-weight: 400;
     padding: 8px 14px;
@@ -270,7 +257,7 @@
     grid-template-columns: auto 1fr;
     gap: 24px;
     align-items: start;
-    background: #0a0a0c;
+    background: #000000;
     border: 1px solid var(--border);
     padding: 20px;
     margin: 16px 0;
@@ -294,9 +281,9 @@
     border: 1px solid;
     letter-spacing: .04em;
   }
-  .t-hw { color: var(--accent2); border-color: rgba(247,201,126,.2); background: rgba(247,201,126,.05); }
-  .t-sw { color: var(--accent);  border-color: rgba(126,184,247,.2); background: rgba(126,184,247,.05); }
-  .t-ai { color: var(--accent3); border-color: rgba(126,247,184,.2); background: rgba(126,247,184,.05); }
+  .t-hw { color: var(--accent2); border-color: rgba(255,200,106,.2); background: rgba(255,200,106,.05); }
+  .t-sw { color: var(--accent);  border-color: rgba(130,190,255,.2); background: rgba(130,190,255,.05); }
+  .t-ai { color: var(--accent3); border-color: rgba(130,255,206,.2); background: rgba(130,255,206,.05); }
 
   /* ── REFERENCES ── */
   .refs {
@@ -337,7 +324,7 @@
   </div>
   <div style="margin-bottom:32px;">
     <a href="https://github.com/GreaseMonkeyIT/Analog-Neural-Network" target="_blank"
-       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(126,184,247,.04);transition:border-color .15s,color .15s;"
+       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(130,190,255,.04);transition:border-color .15s,color .15s;"
        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
        onmouseout="this.style.borderColor='var(--border-hi)';this.style.color='var(--text-dim)'">
       ↗ &nbsp;VIEW ON GITHUB

@@ -6,24 +6,24 @@
 <title>Micromouse - Autonomous Maze Solver</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:         #0a0a0c;
-    --bg2:        #0f0f12;
-    --bg3:        #141418;
-    --border:     #1e1e24;
-    --border-hi:  #2a2a33;
-    --text:       #e8e8f0;
-    --text-dim:   #8888a0;
-    --text-faint: #6a6a85;
-    --accent:     #7eb8f7;
+    --bg:         #000000;
+    --bg2:        #060606;
+    --bg3:        #0c0c0c;
+    --border:     #1c1c1c;
+    --border-hi:  #2a2a2a;
+    --text:       #f4f4f4;
+    --text-dim:   #e6e6e6;
+    --text-faint: #aaaaaa;
+    --accent:     #82beff;
     --accent2:    #5a9de8;
-    --green:      #6bcb8b;
-    --amber:      #f0b44a;
+    --green:      #82ffce;
+    --amber:      #ffc86a;
     --red:        #e05c5c;
     --mono:       'IBM Plex Mono', monospace;
-    --sans:       'Inter', sans-serif;
+    --sans:       'IBM Plex Sans', sans-serif;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -88,9 +88,9 @@
     border-radius: 3px;
     border: 1px solid;
   }
-  .htag.hw  { color: var(--amber);  border-color: rgba(240,180,74,.25);  background: rgba(240,180,74,.06); }
-  .htag.sw  { color: var(--accent); border-color: rgba(126,184,247,.25); background: rgba(126,184,247,.06); }
-  .htag.ai  { color: var(--green);  border-color: rgba(107,203,139,.25); background: rgba(107,203,139,.06); }
+  .htag.hw  { color: var(--amber);  border-color: rgba(255,200,106,.25);  background: rgba(255,200,106,.06); }
+  .htag.sw  { color: var(--accent); border-color: rgba(130,190,255,.25); background: rgba(130,190,255,.06); }
+  .htag.ai  { color: var(--green);  border-color: rgba(130,255,206,.25); background: rgba(130,255,206,.06); }
 
   .divider { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
 
@@ -123,7 +123,7 @@
     font-family: var(--mono);
     font-size: 12px;
     color: var(--amber);
-    background: rgba(240,180,74,.08);
+    background: rgba(255,200,106,.08);
     padding: 1px 5px;
     border-radius: 2px;
   }
@@ -197,8 +197,8 @@
     line-height: 1.35;
   }
   .pipe-box.accent { border-color: var(--accent2); color: var(--accent); }
-  .pipe-box.green  { border-color: rgba(107,203,139,.4); color: var(--green); }
-  .pipe-box.amber  { border-color: rgba(240,180,74,.4);  color: var(--amber); }
+  .pipe-box.green  { border-color: rgba(130,255,206,.4); color: var(--green); }
+  .pipe-box.amber  { border-color: rgba(255,200,106,.4);  color: var(--amber); }
   .pipe-sub {
     font-family: var(--mono);
     font-size: 10px;
@@ -376,7 +376,7 @@
   </div>
   <div style="margin-bottom:32px;">
     <a href="https://github.com/GreaseMonkeyIT/ESP32-Micromouse" target="_blank"
-       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(126,184,247,.04);transition:border-color .15s,color .15s;"
+       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(130,190,255,.04);transition:border-color .15s,color .15s;"
        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
        onmouseout="this.style.borderColor='var(--border-hi)';this.style.color='var(--text-dim)'">
       ↗ &nbsp;VIEW ON GITHUB

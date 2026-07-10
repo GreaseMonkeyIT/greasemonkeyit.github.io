@@ -6,23 +6,32 @@
 <title>Soumyadip Das — Embedded Systems & Edge AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* IBM 3270 :: recreation of the IBM 3270 terminal ROM face.
+     self-hosted (fonts/) — the old onlinewebfonts CDN was slow and unreliable */
+  @font-face {
+    font-family: 'IBM 3270';
+    font-display: swap;
+    src: local('IBM 3270'), local('3270'),
+         url('fonts/3270-Regular.woff') format('woff');
+  }
   :root {
-    --bg:        #0d0d0f;
-    --bg-card:   #111114;
-    --bg-line:   #16161a;
-    --border:    #252529;
-    --border-hi: #3a3a42;
-    --text:      #ffffff;
-    --text-dim:  #e0e0f0;
-    --text-faint:#a0a0bc;
-    --accent:    #7eb8f7;      /* blue — links, highlights */
-    --accent2:   #f7c97e;      /* amber — tags, warnings */
-    --accent3:   #7ef7b8;      /* green — status, success */
-    --accent4:   #f77eb8;      /* pink — misc pop */
+    --bg:        #000000;
+    --bg-card:   #080808;
+    --bg-line:   #0e0e0e;
+    --border:    #1c1c1c;
+    --border-hi: #2a2a2a;
+    --text:      #f4f4f4;
+    --text-dim:  #e6e6e6;
+    --text-faint:#aaaaaa;
+    --accent:    #82beff;      /* blue — links, highlights */
+    --accent2:   #ffc86a;      /* amber — tags, warnings */
+    --accent3:   #82ffce;      /* green — status, success */
+    --accent4:   #ff82c8;      /* pink — misc pop */
     --mono: 'IBM Plex Mono', monospace;
     --sans: 'IBM Plex Sans', sans-serif;
+    --term: 'IBM 3270', 'IBM Plex Mono', monospace;   /* 3270 terminal face, plex mono fallback */
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,8 +53,8 @@
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(126,184,247,.028) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(126,184,247,.028) 1px, transparent 1px);
+      linear-gradient(rgba(130,190,255,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(130,190,255,.05) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
@@ -60,8 +69,8 @@
       0deg,
       transparent,
       transparent 2px,
-      rgba(0,0,0,.18) 2px,
-      rgba(0,0,0,.18) 4px
+      rgba(0,0,0,.28) 2px,
+      rgba(0,0,0,.28) 4px
     );
     pointer-events: none;
     z-index: 0;
@@ -81,8 +90,9 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(13,13,15,.88);
-    backdrop-filter: blur(12px);
+    /* near-opaque instead of backdrop blur — blur-behind re-runs on every
+       frame the animated canvas beneath repaints; deadly on Pi-class GPUs */
+    background: rgba(10,10,12,.97);
     border-bottom: 1px solid var(--border);
   }
   .nav-inner {
@@ -302,8 +312,8 @@
     flex-direction: column;
     cursor: default;
   }
-  .project-card:hover { background: #141418; }
-  .project-card.featured { border-top: 2px solid var(--accent2); }
+  .project-card:hover { border-color: rgba(130,190,255,.3); box-shadow: 0 0 16px rgba(130,190,255,.06) inset; }
+  .project-card.featured { border-left: 2px solid var(--accent2); }
   .card-top {
     display: flex;
     justify-content: space-between;
@@ -321,13 +331,13 @@
     font-family: var(--mono);
     font-size: 12px;
     padding: 2px 8px;
-    border-radius: 2px;
+    border-radius: 0;
     letter-spacing: .06em;
     text-transform: uppercase;
   }
-  .badge-award { background: rgba(247,201,126,.12); color: var(--accent2); border: 1px solid rgba(247,201,126,.25); }
-  .badge-finalist { background: rgba(126,247,184,.12); color: var(--accent3); border: 1px solid rgba(126,247,184,.25); }
-  .badge-live { background: rgba(126,184,247,.12); color: var(--accent); border: 1px solid rgba(126,184,247,.25); }
+  .badge-award { background: rgba(255,200,80,.12); color: var(--accent2); border: 1px solid rgba(255,200,80,.25); }
+  .badge-finalist { background: rgba(130,190,255,.12); color: var(--accent3); border: 1px solid rgba(130,190,255,.25); }
+  .badge-live { background: rgba(130,190,255,.12); color: var(--accent); border: 1px solid rgba(130,190,255,.25); }
   .card-title {
     font-family: var(--mono);
     font-size: 18px;
@@ -343,25 +353,6 @@
     flex: 1;
     margin-bottom: 18px;
   }
-  .card-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 20px;
-  }
-  .tag {
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 3px 9px;
-    border-radius: 2px;
-    background: rgba(255,255,255,.04);
-    color: var(--text-faint);
-    border: 1px solid var(--border);
-    letter-spacing: .04em;
-  }
-  .tag.t-hw { color: var(--accent2); border-color: rgba(247,201,126,.2); background: rgba(247,201,126,.05); }
-  .tag.t-sw { color: var(--accent); border-color: rgba(126,184,247,.2); background: rgba(126,184,247,.05); }
-  .tag.t-ai { color: var(--accent3); border-color: rgba(126,247,184,.2); background: rgba(126,247,184,.05); }
   .card-link {
     font-family: var(--mono);
     font-size: 13px;
@@ -555,7 +546,7 @@
     text-decoration: none;
     transition: background .15s;
   }
-  .contact-item:hover { background: #141418; }
+  .contact-item:hover { border-color: rgba(130,190,255,.3); }
   .contact-platform {
     font-family: var(--mono);
     font-size: 12px;
@@ -586,15 +577,15 @@
     gap: 12px;
   }
   .footer-copy {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--text-faint);
+    font-family: var(--term);
+    font-size: 16px;
+    color: #d5d5d5;
   }
-  .footer-copy span { color: var(--text-dim); }
+  .footer-copy span { color: #f2f2f2; }
   .footer-build {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--text-faint);
+    font-family: var(--term);
+    font-size: 16px;
+    color: #d5d5d5;
   }
 
   /* ── ANIMATIONS ── */
@@ -627,8 +618,7 @@
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.7);
-    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,.85);
     z-index: 500;
     opacity: 0;
     pointer-events: none;
@@ -642,7 +632,7 @@
     position: fixed;
     top: 0; right: 0; bottom: 0;
     width: min(780px, 100vw);
-    background: #0f0f12;
+    background: #050505;
     border-left: 1px solid var(--border);
     z-index: 501;
     overflow-y: auto;
@@ -654,8 +644,7 @@
   .modal-header {
     position: sticky;
     top: 0;
-    background: rgba(15,15,18,.92);
-    backdrop-filter: blur(10px);
+    background: rgba(13,13,16,.98);
     border-bottom: 1px solid var(--border);
     padding: 16px 32px;
     display: flex;
@@ -727,7 +716,7 @@
   .modal-body code {
     font-family: var(--mono);
     font-size: 14px;
-    background: rgba(126,184,247,.08);
+    background: rgba(130,190,255,.08);
     color: var(--accent);
     padding: 1px 6px;
     border-radius: 2px;
@@ -802,8 +791,8 @@
   .modal-ref a { color: var(--accent); text-decoration: none; }
   .modal-ref a:hover { text-decoration: underline; }
   .modal-award-banner {
-    background: rgba(247,201,126,.07);
-    border: 1px solid rgba(247,201,126,.2);
+    background: rgba(255,200,80,.07);
+    border: 1px solid rgba(255,200,80,.2);
     border-left: 3px solid var(--accent2);
     padding: 12px 16px;
     font-family: var(--mono);
@@ -814,9 +803,9 @@
   }
 
   /* ══════════════════════════════════════════════════
-     BACKGROUND SPHERE
+     BACKGROUND PARTICLE MESH
   ══════════════════════════════════════════════════ */
-  #sphere-bg {
+  #particles-bg {
     position: fixed;
     top: 0; left: 0;
     width: 100vw;
@@ -824,13 +813,10 @@
     pointer-events: none;
     z-index: 1;
     opacity: 1;
-    mix-blend-mode: screen;
-    transition: filter 1s ease, opacity 1s ease;
+    transition: opacity 1s ease;
   }
-  #sphere-bg.sp-dimmed {
-    filter: blur(1.5px);
-    opacity: 0.54;
-  }
+  #particles-bg.dimmed { opacity: 0.45; }
+  #particles-bg canvas { display: block; }
 
   /* ══════════════════════════════════════════════════
      ORBITAL PROJECT CAROUSEL
@@ -871,7 +857,7 @@
   }
   .orbit-view-toggle button:not(.active):hover {
     color: var(--text);
-    background: rgba(126,184,247,.06);
+    background: rgba(130,190,255,.06);
   }
 
   /* ── Domain dropdown ── */
@@ -922,7 +908,7 @@
     position: relative;
     height: 680px;
     overflow: hidden;
-    background: radial-gradient(ellipse 60% 55% at center, rgba(126,184,247,0.04), transparent 68%);
+    background: radial-gradient(ellipse 60% 55% at center, rgba(130,190,255,0.04), transparent 68%);
     perspective: 1600px;
     cursor: pointer;
   }
@@ -946,7 +932,7 @@
   }
   .orbit-rings circle {
     fill: none;
-    stroke: rgba(126,184,247,.15);
+    stroke: rgba(130,190,255,.15);
     stroke-width: 1;
     stroke-dasharray: 4 6;
   }
@@ -971,7 +957,7 @@
   .orbit-crosshair::after {
     content: '';
     position: absolute;
-    background: rgba(126,184,247,.08);
+    background: rgba(130,190,255,.08);
   }
   .orbit-crosshair::before {
     left: 50%; top: 24px; bottom: 24px;
@@ -1022,23 +1008,24 @@
       border-color .25s,
       background .25s,
       box-shadow .25s;
-    will-change: transform, opacity;
+    /* no permanent will-change: it pinned ~10 compositor layers inside the
+       perspective stage; Chromium promotes on its own during transitions */
     backface-visibility: hidden;
   }
   .orbit-card:hover:not(.active) { border-color: var(--border-hi); }
   .orbit-card.active {
-    border-color: rgba(126,184,247,.4);
-    background: #131318;
+    border-color: rgba(130,190,255,.4);
+    background: #0a0a0a;
     cursor: pointer;
     box-shadow:
       0 30px 80px -10px rgba(0,0,0,.7),
-      0 0 0 1px rgba(126,184,247,.18) inset;
+      0 0 0 1px rgba(130,190,255,.18) inset;
   }
   .orbit-card.featured.active {
-    border-color: rgba(247,201,126,.45);
+    border-color: rgba(255,200,80,.45);
     box-shadow:
       0 30px 80px -10px rgba(0,0,0,.7),
-      0 0 0 1px rgba(247,201,126,.22) inset;
+      0 0 0 1px rgba(255,200,80,.22) inset;
   }
   .orbit-card.featured::before {
     content: '';
@@ -1048,23 +1035,31 @@
     background: var(--accent2);
     opacity: .8;
   }
-  /* scanline sweep on active */
+  /* scanline sweep on active — the visible 2px line is the top edge of a
+     full-height ::before moved with translateY (compositor-only; the old
+     version animated `top`, which forces layout+paint every frame) */
   .orbit-card.active .ocard-scan {
     position: absolute;
-    left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent 0%, var(--accent) 30%, var(--accent) 70%, transparent 100%);
-    opacity: 0;
-    animation: scanSweep 4s ease-in-out infinite;
+    inset: 0;
+    overflow: hidden;
     pointer-events: none;
   }
-  .orbit-card.featured.active .ocard-scan {
-    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+  .orbit-card.active .ocard-scan::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, var(--accent) 30%, var(--accent) 70%, transparent 100%) top / 100% 2px no-repeat;
+    opacity: 0;
+    animation: scanSweep 4s ease-in-out infinite;
+  }
+  .orbit-card.featured.active .ocard-scan::before {
+    background: linear-gradient(90deg, transparent, var(--accent2), transparent) top / 100% 2px no-repeat;
   }
   @keyframes scanSweep {
-    0% { top: 0%; opacity: 0; }
+    0% { transform: translateY(0); opacity: 0; }
     8% { opacity: .9; }
-    50%, 100% { top: 100%; opacity: 0; }
+    50%, 100% { transform: translateY(100%); opacity: 0; }
   }
 
   .ocard-top {
@@ -1110,13 +1105,6 @@
     -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
   }
-  .ocard-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 14px;
-  }
-  .ocard-tags .tag { font-size: 11px; padding: 2px 7px; letter-spacing: .03em; }
   .ocard-link {
     font-family: var(--mono);
     font-size: 12px;
@@ -1134,7 +1122,6 @@
   .ocard-link.no-link { color: var(--text-faint); pointer-events: none; }
   /* fade non-active cards' content for legibility */
   .orbit-card:not(.active) .ocard-desc,
-  .orbit-card:not(.active) .ocard-tags,
   .orbit-card:not(.active) .ocard-link { opacity: .35; }
 
   .orbit-controls {
@@ -1155,9 +1142,7 @@
     z-index: 20;
     width: 44px;
     height: 44px;
-    background: rgba(13,13,15,.75);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(13,13,15,.92);
     border: 1px solid var(--border-hi);
     color: var(--text-dim);
     font-family: var(--mono);
@@ -1171,7 +1156,7 @@
   }
   .orbit-arrow[data-dir="-1"] { left: 14px; }
   .orbit-arrow[data-dir="1"]  { right: 14px; }
-  .orbit-arrow:hover { border-color: var(--accent); color: var(--accent); background: rgba(126,184,247,.1); }
+  .orbit-arrow:hover { border-color: var(--accent); color: var(--accent); background: rgba(130,190,255,.1); }
   .orbit-arrow:active { transform: translateY(-50%) scale(.92); }
   .orbit-dots {
     display: flex;
@@ -1249,8 +1234,7 @@
     bottom: 20px;
     right: 20px;
     width: 300px;
-    background: rgba(13,13,15,.96);
-    backdrop-filter: blur(12px);
+    background: rgba(13,13,15,.98);
     border: 1px solid var(--border-hi);
     z-index: 800;
     font-family: var(--mono);
@@ -1406,7 +1390,7 @@
     justify-content: center;
     transition: all .2s;
   }
-  .tweaks-fab:hover { border-color: var(--accent); background: rgba(126,184,247,.08); }
+  .tweaks-fab:hover { border-color: var(--accent); background: rgba(130,190,255,.08); }
   .tweaks-fab.hidden { display: none; }
   .tweaks-panel { bottom: 56px; }
 
@@ -1417,12 +1401,11 @@
     position: fixed;
     left: 0; right: 0;
     height: 28px;
-    background: rgba(8, 8, 11, 0.95);
-    backdrop-filter: blur(10px);
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: .14em;
-    color: var(--text-faint);
+    background: rgba(8, 8, 11, 0.97);
+    font-family: var(--term);
+    font-size: 14px;
+    letter-spacing: .12em;
+    color: #d5d5d5;
     display: flex;
     align-items: center;
     padding: 0 18px;
@@ -1439,11 +1422,11 @@
     align-items: center;
     gap: 6px;
   }
-  .hud-cell .hi  { color: var(--accent); }
-  .hud-cell .ok  { color: var(--accent3); }
-  .hud-cell .warn{ color: var(--accent2); }
+  .hud-cell .hi  { color: #9bcbff; }
+  .hud-cell .ok  { color: #9bffd8; }
+  .hud-cell .warn{ color: #ffdea6; }
   .hud-sep {
-    color: var(--border-hi);
+    color: #4a4a4a;
     opacity: .85;
   }
   .hud-spacer { flex: 1; }
@@ -1451,8 +1434,8 @@
     display: inline-block;
     width: 7px; height: 7px;
     border-radius: 50%;
-    background: var(--accent3);
-    box-shadow: 0 0 6px var(--accent3);
+    background: #9bffd8;
+    box-shadow: 0 0 6px #9bffd8;
     animation: hudPulse 1.6s ease-in-out infinite;
   }
   @keyframes hudPulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
@@ -1465,9 +1448,12 @@
   .hud-bars i {
     display: inline-block;
     width: 3px;
-    background: var(--accent);
+    background: #9bcbff;
     height: 100%;
-    transition: height .25s ease;
+    /* scaled with transform (compositor-only) instead of height (layout) */
+    transform-origin: bottom;
+    transform: scaleY(.6);
+    transition: transform .25s ease;
   }
   .hud-bars i.dim { background: var(--border-hi); }
 
@@ -1478,7 +1464,7 @@
 
   /* hide HUD bars on narrow screens to avoid crowding */
   @media (max-width: 700px) {
-    .hud-bar { font-size: 10px; padding: 0 10px; gap: 10px; }
+    .hud-bar { font-size: 12px; padding: 0 10px; gap: 10px; }
     .hud-cell.hide-sm { display: none; }
     .hud-sep.hide-sm  { display: none; }
   }
@@ -1534,40 +1520,44 @@
     width: 22px;
     height: 60%;
     transform: translateY(-50%);
-    border-left: 1px solid var(--accent);
-    border-top: 1px solid var(--accent);
-    border-bottom: 1px solid var(--accent);
+    border-left: 1px solid #9bcbff;
+    border-top: 1px solid #9bcbff;
+    border-bottom: 1px solid #9bcbff;
   }
   .section-head .section-index {
-    color: var(--accent2);
+    font-family: var(--term);
+    color: #ffdea6;
     padding-left: 36px;
     padding-right: 14px;
-    font-size: 12px;
+    font-size: 15px;
+    letter-spacing: .04em;
   }
   .section-head .section-index::before {
     content: 'TAB.';
-    color: var(--text-faint);
+    color: #d5d5d5;
   }
   .section-head .section-title {
-    font-size: 22px;
+    font-family: var(--term);
+    font-size: 25px;
+    color: #f9f9f9;
     padding-right: 18px;
   }
   .section-head .section-title::before {
     content: '▸ ';
-    color: var(--accent3);
+    color: #9bcbff;
     margin-right: 4px;
   }
   .section-head .section-line {
     background: repeating-linear-gradient(90deg, var(--border) 0 6px, transparent 6px 12px);
   }
   .section-head .section-tail {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-faint);
+    font-family: var(--term);
+    font-size: 14px;
+    color: #d5d5d5;
     padding-left: 14px;
-    letter-spacing: .12em;
+    letter-spacing: .1em;
   }
-  .section-head .section-tail .hi { color: var(--accent); }
+  .section-head .section-tail .hi { color: #9bcbff; }
   .section { padding: 60px 0 70px; }
 
   /* corner brackets on key panels */
@@ -1612,12 +1602,212 @@
     background: var(--accent3);
     box-shadow: 0 0 4px var(--accent3);
   }
+
+  /* ══════════════════════════════════════════════════
+     CRT FILTER, inspired from crt-lottes as I saw on DuckStation
+     uses: aperture-grille RGB mask + gaussian scanline + vignette
+     body.no-scanlines hides it
+  ══════════════════════════════════════════════════ */
+  #crt {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100001;      /* above boot (100000) + modals (9990) makes sure crt tube covers everything */
+  }
+  /* aperture grille: fine vertical R/G/B triads */
+  #crt::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(255, 40, 40, .05) 0, rgba(255, 40, 40, .05) 1px,
+      rgba(40, 255, 90, .05) 1px, rgba(40, 255, 90, .05) 2px,
+      rgba(60, 90, 255, .05) 2px, rgba(60, 90, 255, .05) 3px
+    );
+    mix-blend-mode: screen;
+  }
+  /* gaussian scanlines + edge vignette */
+  #crt::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 75% at 50% 50%,
+        transparent 60%, rgba(0,0,0,.40) 100%),
+      repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,.16) 0, rgba(0,0,0,.16) 1px,
+        transparent 1px, transparent 3px
+      );
+  }
+  /* faint moving brightness + slow tube refresh */
+  #crt .crt-roll {
+    position: absolute;
+    left: 0; right: 0;
+    top: 0;
+    height: 28%;
+    background: linear-gradient(
+      180deg, transparent, rgba(180,210,255,.025), transparent);
+    /* transform (not top): band stays compositor-only, no per-frame layout/paint.
+       #crt is fixed inset:0, so vh == parent % */
+    animation: crt-roll 7s linear infinite;
+    will-change: transform;
+  }
+  @keyframes crt-roll {
+    0%   { transform: translateY(-30vh); }
+    100% { transform: translateY(100vh); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #crt .crt-roll { display: none; }
+  }
+
+  /* tweak body-class hooks (static, so toggles work before/without JS) */
+  body.no-scanlines::after,
+  body.no-scanlines #crt { display: none; }
+  body.no-grid::before { display: none; }
+  /* low-power: CRT keeps its static layers (grille / scanlines / vignette);
+     only the rolling band pauses */
+  body.low-power #crt .crt-roll { animation-play-state: paused; }
+
+  /* ══════════════════════════════════════════════════
+     BOOT :: MSX2-style power-on (logo -> BASIC prompt)
+  ══════════════════════════════════════════════════ */
+  #boot {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    cursor: pointer;
+    font-family: var(--term);
+    transition: opacity .5s ease;
+  }
+  #boot.hide { opacity: 0; pointer-events: none; }
+
+  /* old-TV overscan frame */
+  #boot .boot-frame {
+    width: min(640px, 92vw);
+    min-height: 380px;
+    border: 3px solid var(--border-hi);
+    background: #050505;
+    box-shadow:
+      0 0 0 7px #000,
+      0 0 46px rgba(130,255,206,.10) inset;
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  #boot .boot-frame.basic {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  /* PHASE 1 :: rainbow logo */
+  #boot .boot-logo { text-align: center; }
+  #boot .logo-art {
+    font-size: clamp(9px, 2.3vw, 15px);
+    line-height: 1.0;
+    font-weight: 700;
+    white-space: pre;
+    margin: 0 0 22px;
+    background: linear-gradient(90deg,#82beff,#82ffce,#ffc86a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    filter: drop-shadow(0 0 7px rgba(130,255,206,.35));
+  }
+  #boot .logo-strap {
+    font-size: 14px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  #boot .logo-sub {
+    font-size: 11px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  /* PHASE 2 :: BASIC prompt */
+  #boot .boot-basic { display: none; width: 100%; }
+  #boot .boot-basic.show { display: block; }
+  #boot #basic-text {
+    font-family: var(--term);
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--accent3);     /* green phosphor :: site accent */
+    text-shadow: 0 0 6px rgba(130,255,206,.28);
+    margin: 0;
+  }
+  #boot #basic-text .cur::after {
+    content: '█';
+    color: var(--accent3);
+    animation: blink 1s steps(1) infinite;
+  }
+
+  #boot .boot-skip {
+    position: fixed;
+    bottom: 22px; right: 26px;
+    font-size: 10.5px;
+    letter-spacing: .14em;
+    color: var(--text-faint);
+  }
+  #boot .boot-hint {
+    margin-top: 24px;
+    text-align: center;
+    font-size: clamp(15px, 1.5vw, 18px);
+    line-height: 1.5;
+    letter-spacing: .08em;
+    color: var(--text-dim);
+  }
+  #boot .boot-hint .blink {
+    color: #9bffd8;
+    animation: hintBlink 1.2s steps(1) infinite;
+  }
+  @keyframes hintBlink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
 </style>
 </head>
-<body>
+<body class="no-scanlines">
 
-<!-- SPHERE BACKGROUND -->
-<canvas id="sphere-bg" aria-hidden="true"></canvas>
+<!-- PARTICLE MESH BACKGROUND -->
+<div id="particles-bg" aria-hidden="true"></div>
+
+<!-- CRT FILTER OVERLAY (crt-lottes signature) -->
+<div id="crt" aria-hidden="true"><div class="crt-roll"></div></div>
+
+<!-- BOOT :: MSX2-style power-on -->
+<div id="boot" aria-hidden="true">
+  <div class="boot-frame">
+    <!-- PHASE 1 :: rainbow logo -->
+    <div class="boot-logo" id="boot-logo">
+      <pre class="logo-art"> █████    ██████
+██   ██   ██   ██
+██        ██   ██
+ █████    ██   ██
+     ██   ██   ██
+██   ██   ██   ██
+ █████    ██████ </pre>
+      <div class="logo-strap">SD Micro Systems</div>
+      <div class="logo-sub">8-bit Portfolio Computer</div>
+    </div>
+    <!-- PHASE 2 :: BASIC prompt -->
+    <div class="boot-basic" id="boot-basic"><pre id="basic-text"></pre></div>
+  </div>
+  <div class="boot-hint"><span class="blink">▸</span> TIP: enable the CRT overlay in the tweaks box (⚙, bottom-right) for a more authentic experience</div>
+  <div class="boot-skip">[ CLICK / ANY KEY TO SKIP ]</div>
+</div>
 
 <!-- TOP HUD STRIP -->
 <div class="hud-bar top" role="status" aria-label="System status">
@@ -1642,7 +1832,7 @@
   <span class="hud-sep hide-sm">▸</span>
   <span class="hud-cell hide-sm" id="hud-feed">0x00 :: idle</span>
   <span class="hud-spacer"></span>
-  <span class="hud-cell hide-sm">PROJ <span class="hi" id="hud-projcount">12</span></span>
+  <span class="hud-cell hide-sm">PROJ <span class="hi" id="hud-projcount">10</span></span>
   <span class="hud-sep hide-sm">▸</span>
   <span class="hud-cell">FOCUS <span class="hi" id="hud-focus">--</span></span>
   <span class="hud-sep">▸</span>
@@ -1668,7 +1858,7 @@
   <section id="hero">
     <div class="hero-main">
       <div class="hero-text">
-    <div class="hero-prompt">sys.init() — portfolio v1.0</div>
+    <div class="hero-prompt"><span id="hero-prompt-txt" data-text="sys.init() :: portfolio v1.0">sys.init() :: portfolio v1.0</span></div>
     <h1 class="hero-name">Soumyadip<br><em>Das</em><span class="cursor"></span></h1>
     <div class="hero-role">
       Electrical & Electronics Engineer
@@ -1727,11 +1917,11 @@
     <div class="orbit-bar">
       <span class="orbit-domain-label">Domain :</span>
       <select class="orbit-domain-select" id="domain-select">
-        <option value="all">ALL  (11)</option>
-        <option value="embedded">EMBEDDED  (5)</option>
+        <option value="all">ALL  (10)</option>
+        <option value="embedded">EMBEDDED  (7)</option>
         <option value="rtl">RTL / FPGA  (1)</option>
-        <option value="ai">AI / ML  (4)</option>
-        <option value="hardware">HARDWARE  (5)</option>
+        <option value="ai">AI / ML  (5)</option>
+        <option value="hardware">HARDWARE  (4)</option>
         <option value="iot">IOT  (1)</option>
       </select>
     </div>
@@ -1892,8 +2082,8 @@
 
     <!-- CERTIFICATIONS -->
     <div class="section-head" style="margin-top:52px; margin-bottom:24px;">
-      <span class="section-index" style="color:var(--accent2)">02.1</span>
-      <h3 class="section-title" style="font-size:18px;">Certifications</h3>
+      <span class="section-index" style="color:#ffdea6">02.1</span>
+      <h3 class="section-title" style="font-size:20px;">Certifications</h3>
       <div class="section-line"></div>
       <span class="section-tail">[ <span class="hi">07</span> CERTS ]</span>
     </div>
@@ -2058,18 +2248,16 @@
 <div id="ann-overlay" onclick="closeAnn()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;
   cursor:pointer;
 ">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(900px,96vw); height:min(86vh,900px);
-    border:1px solid #3a3a42;
+    border:1px solid #2a2a2a;
     border-radius:8px; overflow:hidden;
-    background:#0d0d0f;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    background:#000000;
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2081,18 +2269,16 @@
 <div id="cpu-overlay" onclick="closeCPU()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;
   cursor:pointer;
 ">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(900px,96vw); height:min(86vh,900px);
-    border:1px solid #3a3a42;
+    border:1px solid #2a2a2a;
     border-radius:8px; overflow:hidden;
-    background:#0d0d0f;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    background:#000000;
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2104,18 +2290,16 @@
 <div id="nvr-overlay" onclick="closeNVR()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;
   cursor:pointer;
 ">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(900px,96vw); height:min(86vh,900px);
-    border:1px solid #3a3a42;
+    border:1px solid #2a2a2a;
     border-radius:8px; overflow:hidden;
-    background:#0d0d0f;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    background:#000000;
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2127,18 +2311,16 @@
 <div id="linux-console-overlay" onclick="closeLinuxConsole()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;
   cursor:pointer;
 ">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(900px,96vw); height:min(86vh,900px);
-    border:1px solid #3a3a42;
+    border:1px solid #2a2a2a;
     border-radius:8px; overflow:hidden;
-    background:#0d0d0f;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    background:#000000;
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2150,15 +2332,14 @@
 <div id="micromouse-overlay" onclick="closeMicromouse()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(92vw,860px); height:min(88vh,900px);
-    background:#0a0a0c;
-    border:1px solid rgba(126,184,247,.15);
+    background:#050505;
+    border:1px solid rgba(130,190,255,.15);
     border-radius:12px; overflow:hidden;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2169,15 +2350,14 @@
 <div id="gokart-overlay" onclick="closeGoKart()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(92vw,860px); height:min(88vh,900px);
-    background:#0a0a0c;
-    border:1px solid rgba(126,184,247,.15);
+    background:#050505;
+    border:1px solid rgba(130,190,255,.15);
     border-radius:12px; overflow:hidden;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2188,15 +2368,14 @@
 <div id="asta-overlay" onclick="closeASTA()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(92vw,860px); height:min(88vh,900px);
-    background:#0a0a0c;
-    border:1px solid rgba(126,184,247,.15);
+    background:#050505;
+    border:1px solid rgba(130,190,255,.15);
     border-radius:12px; overflow:hidden;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2207,15 +2386,14 @@
 <div id="bipv-overlay" onclick="closeBIPV()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(92vw,860px); height:min(88vh,900px);
-    background:#0a0a0c;
-    border:1px solid rgba(126,184,247,.15);
+    background:#050505;
+    border:1px solid rgba(130,190,255,.15);
     border-radius:12px; overflow:hidden;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2226,15 +2404,14 @@
 <div id="iotpv-overlay" onclick="closeIoTPV()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(92vw,860px); height:min(88vh,900px);
-    background:#0a0a0c;
-    border:1px solid rgba(126,184,247,.15);
+    background:#050505;
+    border:1px solid rgba(130,190,255,.15);
     border-radius:12px; overflow:hidden;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2245,15 +2422,14 @@
 <div id="plcscada-overlay" onclick="closePLCSCADA()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(92vw,860px); height:min(88vh,900px);
-    background:#0a0a0c;
-    border:1px solid rgba(126,184,247,.15);
+    background:#050505;
+    border:1px solid rgba(130,190,255,.15);
     border-radius:12px; overflow:hidden;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
@@ -2289,8 +2465,8 @@
     </div>
 
     <div class="tweak-row">
-      <div class="tweak-label">Scanlines <span class="val" id="tweak-scan-val">ON</span></div>
-      <label class="tweak-toggle on" id="tweak-scanlines">
+      <div class="tweak-label">Scanlines <span class="val" id="tweak-scan-val">OFF</span></div>
+      <label class="tweak-toggle" id="tweak-scanlines">
         <span class="tweak-toggle-switch"></span>
         <span class="tweak-toggle-label">CRT overlay</span>
       </label>
@@ -2304,10 +2480,19 @@
       </label>
     </div>
 
+    <div class="tweak-row">
+      <div class="tweak-label">Low power <span class="val" id="tweak-lp-val">AUTO</span></div>
+      <label class="tweak-toggle" id="tweak-lowpower">
+        <span class="tweak-toggle-switch"></span>
+        <span class="tweak-toggle-label">Reduce effects</span>
+      </label>
+    </div>
+
   </div>
 </div>
 <button class="tweaks-fab" id="tweaks-fab" aria-label="Open tweaks">⚙</button>
 
+<script src="js/particles.min.js"></script>
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   // ── MODAL ──
   function openModal(id) {
@@ -2616,10 +2801,6 @@
       badgeText: '1st Prize · GENESIS 2026',
       badgeCls: 'card-badge badge-award',
       desc: 'PCB implementation of a full-precision analog neural network trained to classify XOR and the 4-class Iris dataset. Weights mapped directly to resistor networks — no digital compute.',
-      tags: [
-        {text:'Analog Circuits',cls:'tag t-hw'},{text:'PCB Design',cls:'tag t-hw'},
-        {text:'Backpropagation',cls:'tag t-ai'},{text:'KiCAD',cls:'tag t-sw'},{text:'LTspice',cls:'tag t-sw'}
-      ],
       hasCalc: false,
       cardAction: 'openAnn()',
       linkText: 'View on GitHub →',
@@ -2636,10 +2817,6 @@
       badgeText: '',
       badgeCls: '',
       desc: 'Full RV32I single-cycle CPU in SystemVerilog — 8 modules, 7 co-simulation testbenches via Cocotb/Verilator, and a synthesised RTL netlist generated with Yosys + netlistsvg.',
-      tags: [
-        {text:'SystemVerilog',cls:'tag t-hw'},{text:'Yosys',cls:'tag t-sw'},
-        {text:'Verilator',cls:'tag t-sw'},{text:'Cocotb',cls:'tag t-sw'},{text:'RV32I ISA',cls:'tag t-hw'}
-      ],
       hasCalc: true,
       cardAction: 'openCPU()',
       linkText: 'View on GitHub →',
@@ -2656,12 +2833,6 @@
       badgeText: 'SIH 2024 Finalist',
       badgeCls: 'card-badge badge-finalist',
       desc: 'Team lead. ISRO problem SIH1739 - citywide Building Integrated Photovoltaic potential assessment. Custom BVH ray tracer in Unity compute shader maps per-face solar irradiance at 1m² resolution onto LOD-1 3D city models, visualised live on CesiumJS. Published IEC 2025.',
-      tags: [
-        {text:'Unity Compute Shader',cls:'tag t-sw'},{text:'BVH Ray Tracer',cls:'tag t-ai'},
-        {text:'CesiumJS',cls:'tag t-sw'},{text:'QGIS',cls:'tag t-sw'},
-        {text:'EPW Weather Data',cls:'tag t-hw'},{text:'Cartosat / OSM',cls:'tag t-hw'},
-        {text:'C#',cls:'tag t-sw'},{text:'PostgreSQL',cls:'tag t-sw'}
-      ],
       hasCalc: false,
       cardAction: 'openBIPV()',
       linkText: 'IEC 2025 Paper →',
@@ -2678,11 +2849,6 @@
       badgeText: '2nd Prize · GENESIS 2025',
       badgeCls: 'card-badge badge-award',
       desc: 'Physics-based digital twin for a 100 kWp solar plant. Single-diode PV model, PVGIS-ERA5 baseline for 10 Indian cities, K-Means anomaly detection, and fault classifier with electrical parameter signatures.',
-      tags: [
-        {text:'ESP32 · LoRaWAN',cls:'tag t-hw'},
-        {text:'Python · Flask',cls:'tag t-sw'},{text:'PVGIS-ERA5',cls:'tag t-sw'},
-        {text:'K-Means',cls:'tag t-ai'},{text:'Anomaly Detection',cls:'tag t-ai'}
-      ],
       hasCalc: false,
       cardAction: 'openIoTPV()',
       linkText: 'View on GitHub →',
@@ -2699,10 +2865,6 @@
       badgeText: '',
       badgeCls: '',
       desc: 'Headless NVR on Raspberry Pi with YOLOv8n object detection and per-zone ROI alerting. Multi-camera RTSP ingest, motion-triggered recording, and push notifications.',
-      tags: [
-        {text:'Raspberry Pi',cls:'tag t-hw'},{text:'YOLOv8n',cls:'tag t-ai'},
-        {text:'RTSP',cls:'tag t-sw'},{text:'OpenCV',cls:'tag t-sw'},{text:'Python',cls:'tag t-sw'}
-      ],
       hasCalc: false,
       cardAction: 'openNVR()',
       linkText: 'View on GitHub →',
@@ -2719,10 +2881,6 @@
       badgeText: '',
       badgeCls: '',
       desc: 'Handheld Linux game console on Raspberry Pi Zero 2W with a 3.5″ ILI9486 TFT. Custom fbcp-ili9341 userland driver achieves 60 FPS static / 36 FPS gaming via adaptive pixel diffing over BCM2835 SPI at 31.25 MHz.',
-      tags: [
-        {text:'Raspberry Pi',cls:'tag t-hw'},{text:'ILI9486 TFT',cls:'tag t-hw'},
-        {text:'fbcp-ili9341',cls:'tag t-sw'},{text:'Buildroot',cls:'tag t-sw'},{text:'BCM2835 SPI',cls:'tag t-hw'}
-      ],
       hasCalc: false,
       cardAction: 'openLinuxConsole()',
       linkText: 'View Detail Page →',
@@ -2739,10 +2897,6 @@
       badgeText: 'LIVE PRODUCT',
       badgeCls: 'card-badge badge-live',
       desc: 'Founding Engineer at ASTA Health Tech. Per-bed edge unit for hospital ward monitoring — custom Buildroot BSP on Pi Zero 2W, Camera Module 3, libcamera + OpenCV4 NEON pipeline. 7+ live hospital deployments. AIC-SEED incubated, MeitY backed.',
-      tags: [
-        {text:'Pi Zero 2W',cls:'tag t-hw'},{text:'Buildroot',cls:'tag t-sw'},
-        {text:'Camera Module 3',cls:'tag t-hw'},        {text:'libcamera',cls:'tag t-sw'},{text:'OpenCV4 NEON',cls:'tag t-ai'},{text:'Linux BSP',cls:'tag t-sw'}
-      ],
       hasCalc: false,
       cardAction: 'openASTA()',
       linkText: 'View Detail Page →',
@@ -2759,10 +2913,6 @@
       badgeText: '',
       badgeCls: '',
       desc: 'Autonomous maze-solving robot on ESP32. Flood-fill pathfinding, bitmask wall representation for O(1) cell queries, ultrasonic sensor array, and PID-controlled N20 motors.',
-      tags: [
-        {text:'ESP32',cls:'tag t-hw'},{text:'Flood Fill',cls:'tag t-ai'},
-        {text:'PID Control',cls:'tag t-sw'},{text:'Ultrasonic',cls:'tag t-hw'},{text:'C++',cls:'tag t-sw'}
-      ],
       hasCalc: false,
       cardAction: 'openMicromouse()',
       linkText: 'View on GitHub →',
@@ -2779,10 +2929,6 @@
       badgeText: '',
       badgeCls: '',
       desc: 'REST tag server and SCADA GUI for an Allen-Bradley MicroLogix 1400 PLC at Cummins Turbo Technologies. Differential push bridge, threaded Flask/waitress API, and Tkinter HMI reading 40+ live tags.',
-      tags: [
-        {text:'Allen-Bradley',cls:'tag t-hw'},{text:'EtherNet/IP',cls:'tag t-hw'},
-        {text:'Python',cls:'tag t-sw'},{text:'Flask',cls:'tag t-sw'},{text:'pycomm3',cls:'tag t-sw'}
-      ],
       hasCalc: false,
       cardAction: 'openPLCSCADA()',
       linkText: 'View Detail Page →',
@@ -2799,11 +2945,6 @@
       badgeText: 'AIR 7 · FMAE FKDC 2025',
       badgeCls: 'card-badge badge-award',
       desc: 'Full electric go-kart built for FMAE FKDC Season 9 (Oct 2025). 72V 80Ah Li-ion pack, QS138 BLDC mid-drive, perimeter chassis with Ackermann steering, FEA-validated frame. AIR 7 overall, AIR 5 in Endurance on first attempt. Role: electrical team, power distribution & system integration.',
-      tags: [
-        {text:'72V EV Powertrain',cls:'tag t-hw'},{text:'Li-ion BMS',cls:'tag t-hw'},
-        {text:'BLDC Motor',cls:'tag t-hw'},{text:'SolidWorks + FEA',cls:'tag t-sw'},
-        {text:'MATLAB/Simulink',cls:'tag t-sw'},{text:'ANSYS',cls:'tag t-sw'}
-      ],
       hasCalc: false,
       cardAction: 'openGoKart()',
       linkText: 'View Detail Page →',
@@ -2829,7 +2970,6 @@
         </div>
         <div class="card-title">${p.title}</div>
         <div class="card-desc">${p.desc}</div>
-        <div class="card-tags">${p.tags.map(t=>`<span class="${escH(t.cls)}">${escH(t.text)}</span>`).join('')}</div>
         ${p.linkNoLink
           ? ''
           : `<a class="card-link" href="${escH(p.linkHref)}"
@@ -2897,16 +3037,13 @@
         </div>
         <div class="ocard-title">${escH(p.title)}</div>
         <div class="ocard-desc">${p.desc}</div>
-        <div class="ocard-tags">
-          ${p.tags.map(t => `<span class="${t.cls}">${escH(t.text)}</span>`).join('')}
-        </div>
         ${p.linkNoLink ? '' : `<a class="ocard-link"
            href="${p.linkHref}"
            ${p.linkTarget ? `target="${p.linkTarget}"`:''}
            ${p.linkOnclick ? `onclick="${p.linkOnclick.replace(/"/g,'&quot;')}"`:''}>
           ${escH(p.linkText)}
         </a>`}
-        ${p.hasCalc ? `<button class="ocard-link" style="margin-top:7px;background:rgba(126,184,247,0.08);border:1px solid rgba(126,184,247,0.35);color:var(--accent);cursor:pointer;border-radius:3px;padding:5px 12px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;width:100%;text-align:left;transition:background .15s,border-color .15s;" onmouseover="this.style.background='rgba(126,184,247,0.18)';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='rgba(126,184,247,0.08)';this.style.borderColor='rgba(126,184,247,0.35)'" onclick="const c=this.closest('.orbit-card');if(c.classList.contains('active')){event.stopPropagation();openCalc();}">◈ Launch Calculator →</button>` : ''}`;
+        ${p.hasCalc ? `<button class="ocard-link" style="margin-top:7px;background:rgba(130,190,255,0.08);border:1px solid rgba(130,190,255,0.35);color:var(--accent);cursor:pointer;border-radius:3px;padding:5px 12px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;width:100%;text-align:left;transition:background .15s,border-color .15s;" onmouseover="this.style.background='rgba(130,190,255,0.18)';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='rgba(130,190,255,0.08)';this.style.borderColor='rgba(130,190,255,0.35)'" onclick="const c=this.closest('.orbit-card');if(c.classList.contains('active')){event.stopPropagation();openCalc();}">◈ Launch Calculator →</button>` : ''}`;
       el._project = p;
       el.addEventListener('click', (e) => {
         const isActive = el.classList.contains('active');
@@ -3094,10 +3231,22 @@
       }
     }, {passive:false});
 
-    // rAF drift loop — non-active cards sway gently; active card is exempt
+    // rAF drift loop — non-active cards sway gently; active card is exempt.
+    // Sway phase is wall-clock based (t % DRIFT_T), so throttling the tick
+    // rate only coarsens the sampling — sway speed never depends on fps.
+    const orbitViewEl = document.getElementById('orbit-view');
+    let driftInView = true;
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(en => { driftInView = en[0].isIntersecting; }).observe(stage);
+    }
+    let driftLast = 0;
     function driftLoop(t) {
       driftRafId = requestAnimationFrame(driftLoop);
       if (driftPaused) return;
+      if (orbitViewEl && orbitViewEl.hidden) return;               // grid view showing
+      if (document.body.classList.contains('low-power')) return;   // sway off in low power
+      if (!driftInView && t - driftLast < 62) return;               // ~15fps when off-screen
+      driftLast = t;
       const phase = (t % DRIFT_T) / DRIFT_T; // 0..1
       const rx = DRIFT_A * Math.sin(2 * Math.PI * phase);
       const ry = DRIFT_B * Math.sin(2 * Math.PI * phase + Math.PI / 3);
@@ -3133,6 +3282,48 @@
   // ══════════════════════════════════════════════════
   // TWEAKS PANEL
   // ══════════════════════════════════════════════════
+  // ── LOW-POWER MODE — manual tweak wins; otherwise auto-detected ──
+  // low-power: mesh at half density (paused once dimmed), orbit sway off, CRT roll paused.
+  // The static look (grid, scanlines, colors, layout) is untouched.
+  (function initPerf(){
+    let manual = null;                 // true/false once the user flips the tweak
+    function apply(on){
+      document.body.classList.toggle('low-power', on);
+      window.particlesSetPerf && window.particlesSetPerf(on);
+      const lbl = document.getElementById('tweak-lp-val');
+      if (lbl) lbl.textContent = manual === null ? (on ? 'AUTO·ON' : 'AUTO') : (on ? 'ON' : 'OFF');
+      const t = document.getElementById('tweak-lowpower');
+      if (t) t.classList.toggle('on', on);
+    }
+    window.setLowPower = (on, src) => {
+      if (src === 'manual') manual = !!on;
+      apply(!!on);
+    };
+
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      apply(true);
+      return;
+    }
+    // frame-time probe: sample rAF cadence after the boot screen has cleared;
+    // a median above ~22ms (sustained <45fps) marks the machine as low-power
+    function probe(){
+      if (manual !== null) return;
+      const deltas = [];
+      let last = null;
+      function step(ts){
+        if (last !== null) deltas.push(ts - last);
+        last = ts;
+        if (deltas.length < 40) { requestAnimationFrame(step); return; }
+        deltas.sort((a, b) => a - b);
+        if (manual === null && deltas[deltas.length >> 1] > 22) apply(true);
+      }
+      requestAnimationFrame(step);
+    }
+    let bootWillRun = true;
+    try { bootWillRun = !sessionStorage.getItem('sd-booted'); } catch (e) {}
+    setTimeout(probe, bootWillRun ? 6500 : 1500);
+  })();
+
   (function initTweaks(){
     const panel = document.getElementById('tweaks-panel');
     const fab = document.getElementById('tweaks-fab');
@@ -3143,6 +3334,23 @@
     fab.addEventListener('click', open);
     closeBtn.addEventListener('click', close);
 
+    // persisted tweak state (accent / motion / toggles survive reloads)
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem('sd-tweaks') || '{}'); } catch (e) {}
+    function persist(key, val){
+      saved[key] = val;
+      try { localStorage.setItem('sd-tweaks', JSON.stringify(saved)); } catch (e) {}
+    }
+
+    // declared before the restore code below runs — applyTweak reads this,
+    // and a const is unusable (TDZ) until its declaration line has executed
+    const ACCENTS = {
+      blue:  '#82beff',
+      amber: '#ffc86a',
+      green: '#00ff41',   // matrix green
+      pink:  '#ff82c8',
+    };
+
     // segments
     document.querySelectorAll('.tweak-segments').forEach(seg => {
       const key = seg.dataset.key;
@@ -3151,32 +3359,41 @@
           seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           applyTweak(key, btn.dataset.val);
+          persist(key, btn.dataset.val);
         });
       });
+      if (saved[key]) {
+        const btn = seg.querySelector(`button[data-val="${saved[key]}"]`);
+        if (btn) {
+          seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          applyTweak(key, saved[key]);
+        }
+      }
     });
 
     // toggles
+    function setToggle(t, on){
+      t.classList.toggle('on', on);
+      if (t.id === 'tweak-scanlines') {
+        document.body.classList.toggle('no-scanlines', !on);
+        document.getElementById('tweak-scan-val').textContent = on ? 'ON' : 'OFF';
+      }
+      if (t.id === 'tweak-grid') {
+        document.body.classList.toggle('no-grid', !on);
+        document.getElementById('tweak-grid-val').textContent = on ? 'ON' : 'OFF';
+      }
+      if (t.id === 'tweak-lowpower') {
+        window.setLowPower && window.setLowPower(on, 'manual');
+      }
+    }
     document.querySelectorAll('.tweak-toggle').forEach(t => {
       t.addEventListener('click', () => {
-        t.classList.toggle('on');
-        const on = t.classList.contains('on');
-        if (t.id === 'tweak-scanlines') {
-          document.body.classList.toggle('no-scanlines', !on);
-          document.getElementById('tweak-scan-val').textContent = on ? 'ON' : 'OFF';
-        }
-        if (t.id === 'tweak-grid') {
-          document.body.classList.toggle('no-grid', !on);
-          document.getElementById('tweak-grid-val').textContent = on ? 'ON' : 'OFF';
-        }
+        setToggle(t, !t.classList.contains('on'));
+        persist(t.id, t.classList.contains('on'));
       });
+      if (t.id in saved) setToggle(t, !!saved[t.id]);
     });
-
-    const ACCENTS = {
-      blue:  '#7eb8f7',
-      amber: '#f7c97e',
-      green: '#00ff41',   // matrix green
-      pink:  '#f77eb8',
-    };
 
     function applyTweak(key, val){
       if (key === 'orbitMotion') {
@@ -3184,18 +3401,12 @@
       }
       if (key === 'accent') {
         document.documentElement.style.setProperty('--accent', ACCENTS[val]);
-        window.sphereRefreshAccent && window.sphereRefreshAccent();
+        window.particlesRefreshAccent && window.particlesRefreshAccent();
       }
     }
   })();
 
-  // body class hooks for tweaks (scanlines / grid disable)
-  const styleHooks = document.createElement('style');
-  styleHooks.textContent = `
-    body.no-scanlines::after { display: none; }
-    body.no-grid::before { display: none; }
-  `;
-  document.head.appendChild(styleHooks);
+  // (tweak body-class hooks live in the main stylesheet now — see CRT section)
 
   // ══════════════════════════════════════════════════
   // HUD STRIPS — clock, uptime, signal, section tracker
@@ -3213,6 +3424,7 @@
     const start = Date.now();
 
     function fmtClock(){
+      if (document.hidden) return;
       const d = new Date();
       $time && ($time.textContent =
         `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`);
@@ -3228,15 +3440,18 @@
     if ($bars) {
       const bars = [...$bars.querySelectorAll('i')];
       let levels = [55, 70, 90, 75, 40];
+      const paint = () => bars.forEach((b, i) => {
+        b.style.transform = `scaleY(${(levels[i] / 100).toFixed(3)})`;
+        b.classList.toggle('dim', levels[i] < 35);
+      });
+      paint();
       setInterval(() => {
+        if (document.hidden) return;
         levels = levels.map(v => {
           v += (Math.random() - 0.5) * 30;
           return Math.max(15, Math.min(100, v));
         });
-        bars.forEach((b, i) => {
-          b.style.height = levels[i] + '%';
-          b.classList.toggle('dim', levels[i] < 35);
-        });
+        paint();
       }, 700);
     }
 
@@ -3244,6 +3459,7 @@
     if ($feed) {
       const verbs = ['rx', 'tx', 'sync', 'ack', 'ping', 'idle', 'scan'];
       setInterval(() => {
+        if (document.hidden) return;
         const hex = Math.floor(Math.random()*0xFFFF).toString(16).toUpperCase().padStart(4,'0');
         const v = verbs[Math.floor(Math.random()*verbs.length)];
         $feed.textContent = `0x${hex} :: ${v}`;
@@ -3271,6 +3487,131 @@
     window.setHudDomain = (label) => { tailDom && (tailDom.textContent = label); };
   })();
 
+  // ══════════════════════════════════════════════════
+  // BOOT / POST SCREEN + HERO PROMPT TYPEWRITER
+  // ══════════════════════════════════════════════════
+  (function initBoot(){
+    const boot  = document.getElementById('boot');
+    const logo  = document.getElementById('boot-logo');
+    const wrap  = document.getElementById('boot-basic');
+    const basic = document.getElementById('basic-text');
+    const frame = boot && boot.querySelector('.boot-frame');
+    if (!boot || !basic) { typeHeroPrompt(); return; }
+
+    // show boot only once per tab session :: refresh / back-nav skips straight to the site
+    try {
+      if (sessionStorage.getItem('sd-booted')) { boot.remove(); typeHeroPrompt(); return; }
+      sessionStorage.setItem('sd-booted', '1');
+    } catch (e) { /* storage blocked (private mode) :: just play the boot */ }
+
+    // MSX-style BASIC banner
+    const BASIC = [
+      'SD_BASIC V2.0',
+      'Copyright 2026 by Soumyadip Das',
+      '65536 Bytes free',
+      '',
+      'Ok'
+    ];
+    const CMD = 'run "PORTFOLIO.BAS"';
+    const CUR = '<span class="cur"></span>';
+
+    let done = false;
+    function finish(){
+      if (boot.classList.contains('hide')) return;
+      boot.classList.add('hide');
+      setTimeout(() => { boot.remove(); }, 540);
+      typeHeroPrompt();
+    }
+    function skip(){ if (done) return; done = true; finish(); }
+
+    boot.addEventListener('click', skip);
+    window.addEventListener('keydown', skip, { once: true });
+
+    //    absolute timeline (in ms from boot start) 
+    //    Every phase boundary is a fixed wall-clock
+    //    offset, so total duration remains identical
+    //    regardless of display refresh rate or frame drops
+    //    correction to previous framerate based version
+    const P = {};
+    P.logo   = 1200;                          // phase 1 logo hold
+    P.line   = 180;                           // per BASIC line reveal
+    P.lines  = P.logo + BASIC.length * P.line;
+    P.okHold = 450;                           // pause on "Ok"
+    P.cmdAt  = P.lines + P.okHold;            // command starts
+    P.char   = 45;                            // per char of the run command
+    P.cmdEnd = P.cmdAt + CMD.length * P.char;
+    P.cmdHld = 350;                           // pause after command
+    P.loadAt = P.cmdEnd + P.cmdHld;           // loading dots start
+    P.dotN   = 8;
+    P.dot    = 90;                            // per dot
+    P.loadEnd= P.loadAt + P.dotN * P.dot;
+    P.holdEnd= 525;                           // final pause
+    P.end    = P.loadEnd + P.holdEnd;         // total approx 5s
+
+    let inBasic = false;
+    function enterBasic(){
+      if (inBasic) return;
+      inBasic = true;
+      logo.style.display = 'none';
+      wrap.classList.add('show');
+      frame && frame.classList.add('basic');
+    }
+
+    // render boot as function of elapsed time
+    function render(e){
+      if (e < P.logo) return;                 // logo
+      enterBasic();
+      if (e < P.lines) {
+        const n = Math.min(BASIC.length, Math.floor((e - P.logo) / P.line) + 1);
+        basic.innerHTML = BASIC.slice(0, n).join('\n') + CUR;
+        return;
+      }
+      const base = BASIC.join('\n') + '\n';
+      if (e < P.cmdAt) { basic.innerHTML = BASIC.join('\n') + CUR; return; }
+      if (e < P.cmdEnd) {
+        const n = Math.min(CMD.length, Math.floor((e - P.cmdAt) / P.char));
+        basic.innerHTML = base + CMD.slice(0, n) + CUR;
+        return;
+      }
+      const base2 = base + CMD + '\n';
+      if (e < P.loadAt) { basic.innerHTML = base + CMD + CUR; return; }
+      if (e < P.loadEnd) {
+        const d = Math.min(P.dotN, Math.floor((e - P.loadAt) / P.dot) + 1);
+        basic.innerHTML = base2 + 'loading' + '.'.repeat(d) + CUR;
+        return;
+      }
+      basic.innerHTML = base2 + 'loading' + '.'.repeat(P.dotN) + CUR;
+    }
+
+    // drive off the high res clock timestamp
+    let start = null;
+    function frameStep(ts){
+      if (done) return;
+      if (start === null) start = ts;
+      const e = ts - start;
+      render(e);
+      if (e >= P.end) { done = true; finish(); return; }
+      requestAnimationFrame(frameStep);
+    }
+    requestAnimationFrame(frameStep);
+  })();
+
+  function typeHeroPrompt(){
+    const el = document.getElementById('hero-prompt-txt');
+    if (!el) return;
+    const full = el.getAttribute('data-text') || el.textContent;
+    const reduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) { el.textContent = full; return; }
+    el.textContent = '';
+    let i = 0;
+    (function tick(){
+      el.textContent = full.slice(0, i);
+      i++;
+      if (i <= full.length) setTimeout(tick, 38);
+    })();
+  }
+
   // ── FADE IN ON SCROLL ──
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((e, i) => {
@@ -3283,324 +3624,151 @@
 
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-  // ── SKILL BAR ANIMATE ──
-  const skillObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.querySelectorAll('.skill-fill').forEach(fill => {
-          const w = fill.style.width;
-          fill.style.width = '0';
-          requestAnimationFrame(() => {
-            setTimeout(() => { fill.style.width = w; }, 100);
-          });
-        });
-        skillObserver.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.2 });
-
-  document.querySelectorAll('.skills-layout').forEach(el => skillObserver.observe(el));
-
   // ══════════════════════════════════════════════════
-  // BACKGROUND SPHERE — full-viewport fixed canvas
-  //   fibonacci particle sphere replaces the matrix rain
-  //   ·  300-point fibonacci sphere, back hemisphere culled
-  //   ·  idle auto-rotate + gentle mouse parallax (no drag)
-  //   ·  CPU event effects via window.sphereCpuEvent(type)
-  //        'fetch'  → blue expanding ring
-  //        'branch' → green double-ring
-  //        'write'  → amber 8-spoke burst
+  // BACKGROUND: particles.js node mesh (replaced the 3-D sphere)
+  //   · flat dot + linked-line mesh at native framerate — no throttled
+  //     "slow zones": when it can't be smooth it pauses instead
+  //   · hover: lines grab the cursor · click: pushes nodes (capped)
+  //   · accent-synced with the tweaks panel; dims past the hero
+  //   · low-power: half the nodes, slower drift, paused once dimmed
   // ══════════════════════════════════════════════════
-  (function initHeroSphere(){
-    const canvas = document.getElementById('sphere-bg');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const dpr = Math.min(2, devicePixelRatio || 1);
-    let W = 0, H = 0;
+  (function initParticlesBg(){
+    const host = document.getElementById('particles-bg');
+    if (!host || !window.particlesJS) return;
 
-    function resize(){
-      W = window.innerWidth;
-      H = window.innerHeight;
-      canvas.width  = W * dpr;
-      canvas.height = H * dpr;
-      ctx.setTransform(1,0,0,1,0,0);
-      ctx.scale(dpr, dpr);
-    }
-    resize();
-    window.addEventListener('resize', resize);
+    const accent = () =>
+      getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#82beff';
 
-    // ── fibonacci sphere (300 pts, uniform distribution) ──
-    const N = 300;
-    const GOLDEN = Math.PI * (Math.sqrt(5) - 1);
-    const pts = Array.from({length: N}, (_, i) => {
-      const y  = 1 - (i / (N - 1)) * 2;
-      const r  = Math.sqrt(Math.max(0, 1 - y * y));
-      const th = GOLDEN * i;
-      return [r * Math.cos(th), y, r * Math.sin(th)];
+    // the stock particles.js "default" demo config, verbatim, with two changes:
+    // color follows the site accent, and move.speed is 1.5 instead of 6
+    // (speed induces panic, smooth induces calm)
+    particlesJS('particles-bg', {
+      particles: {
+        number:  { value: 80, density: { enable: true, value_area: 800 } },
+        color:   { value: accent() },
+        shape:   { type: 'circle' },
+        opacity: { value: .5, random: false },
+        size:    { value: 3, random: true },
+        line_linked: { enable: true, distance: 150, color: accent(), opacity: .4, width: 1 },
+        move: { enable: true, speed: 1.5, direction: 'none', random: false, straight: false, out_mode: 'out' }
+      },
+      interactivity: {
+        detect_on: 'window',
+        events: {
+          onhover: { enable: true, mode: 'repulse' },   // the demo's circular void around the cursor
+          onclick: { enable: true, mode: 'push' },
+          resize: true
+        },
+        modes: {
+          repulse: { distance: 200, duration: 0.4 },
+          push: { particles_nb: 4 }
+        }
+      },
+      retina_detect: true
     });
 
-    // ── pre-compute edges ──
-    const EDGE_T = 0.44;
-    const edges = [];
-    for (let i = 0; i < N; i++) {
-      for (let j = i + 1; j < N; j++) {
-        const dx = pts[i][0]-pts[j][0];
-        const dy = pts[i][1]-pts[j][1];
-        const dz = pts[i][2]-pts[j][2];
-        const d2 = dx*dx + dy*dy + dz*dz;
-        if (d2 < EDGE_T * EDGE_T) edges.push([i, j, Math.sqrt(d2)]);
-      }
+    const pjs = () => (window.pJSDom && window.pJSDom[0] && window.pJSDom[0].pJS) || null;
+    const baseCount = pjs() ? pjs().particles.array.length : 70;
+
+    function hexToRgbObj(hex){
+      hex = hex.replace('#','');
+      if (hex.length === 3) hex = [...hex].map(c => c + c).join('');
+      const n = parseInt(hex, 16);
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
     }
 
-    // ── per-particle pulse: 2–12 Hz, golden-ratio phase distribution ──
-    const PULSE_F = pts.map((_, i) => 2 + (i / (N - 1)) * 10);
-    const PULSE_P = pts.map((_, i) => i * 2.3999632);
-    let spIntensity = 1.0;
-    window.sphereSetIntensity = v => { spIntensity = Math.max(0, Math.min(1, v)); };
-
-    // ── rotation ──
-    const DRIFT_SPEED = 0.0016;
-    const SPIN_DECAY  = 0.94;
-    let driftAngle       = Math.random() * Math.PI * 2;
-    let targetDriftAngle = driftAngle;
-    let nextDriftChange  = performance.now() + 10000;
-    let autoVX = 0, autoVY = 0;
-    function updateDrift() {
-      autoVY = Math.cos(driftAngle) * DRIFT_SPEED;
-      autoVX = Math.sin(driftAngle) * DRIFT_SPEED * 0.55;
-    }
-    updateDrift();
-    let rotX = -0.25, rotY = 0;
-    let velX = autoVX, velY = autoVY;
-
-    // ── pause on hidden tab; dim when hero scrolled past ──
-    let spPaused = false;
-    let spDimmed = false;
-    document.addEventListener('visibilitychange', () => spPaused = document.hidden);
-    const heroEl = document.getElementById('hero');
-    if (heroEl) {
-      new IntersectionObserver(entries => {
-        spDimmed = !entries[0].isIntersecting;
-        canvas.classList.toggle('sp-dimmed', spDimmed);
-      }, { threshold: 0.1 }).observe(heroEl);
-    }
-
-    // ── CPU event effects queue ──
-    const effects = [];
-    window.sphereCpuEvent = function(type) {
-      effects.push({ type, t: 0, max: type === 'branch' ? 60 : 45 });
+    // live re-tint on accent tweak (dots + lines, existing and future)
+    window.particlesRefreshAccent = function(){
+      const p = pjs(); if (!p) return;
+      const hex = accent(), rgb = hexToRgbObj(hex);
+      p.particles.color.value = hex;
+      p.particles.line_linked.color = hex;
+      p.particles.line_linked.color_rgb_line = rgb;
+      p.particles.array.forEach(pt => { pt.color.rgb = rgb; });
     };
 
-    // ── 3-D surface ripples (separate from 2-D overlay effects) ──
-    const ripples = [];
-
-    // ── accent color — cached, refreshed only on tweak change ──
-    function spHexToRgb(hex){
-      hex = hex.replace('#','');
-      if (hex.length === 3) hex = [...hex].map(c => c+c).join('');
-      const n = parseInt(hex, 16);
-      return [(n>>16)&255, (n>>8)&255, n&255];
-    }
-    let aR, aG, aB;
-    function spRefreshAccent(){
-      [aR, aG, aB] = spHexToRgb(
-        getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7eb8f7'
-      );
-    }
-    spRefreshAccent();
-    window.sphereRefreshAccent = spRefreshAccent;
-
-    // ── pre-allocated per-frame buffers (no GC pressure) ──
-    const tp        = Array.from({length: N}, () => [0, 0, 0]);   // rotated pts
-    const projected = Array.from({length: N}, () => [0, 0, 0]);   // screen coords + z
-    const sortedPts = Array.from({length: N}, (_, i) => [i, 0, 0, 0]); // [idx, sx, sy, z]
-    const nodeDisp  = new Float32Array(N);                          // per-node radial displacement
-
-    // cached sphere centre + rotation — read by click handler outside the frame
-    let spCX = 0, spCY = 0, spSCL = 0;
-    let spCosX = 1, spSinX = 0, spCosY = 1, spSinY = 0;
-
-    let spLast = 0;
-    function spFrame(t){
-      requestAnimationFrame(spFrame);
-      if (spPaused) return;
-      // 24 fps normally; drop to ~10 fps when dimmed (sphere not visible in detail)
-      if (t - spLast < (spDimmed ? 50 : 25)) return;
-      const dt = Math.min(200, t - spLast);
-      spLast = t;
-
-      // ── wander: pick a new target direction (±30°) every ~10 s ──
-      if (t >= nextDriftChange) {
-        targetDriftAngle = driftAngle + (Math.random() - 0.5) * (Math.PI / 3);
-        nextDriftChange  = t + 9000 + Math.random() * 2000;
-      }
-      driftAngle += (targetDriftAngle - driftAngle) * 0.012;
-      updateDrift();
-
-      const dtScale = dt / 25;                                   // normalise to 40fps baseline
-      velY = velY * SPIN_DECAY + autoVY * (1 - SPIN_DECAY);
-      velX = velX * SPIN_DECAY + autoVX * (1 - SPIN_DECAY);
-      rotY += velY * dtScale;
-      rotX += velX * dtScale;
-
-      ctx.clearRect(0, 0, W, H);
-      const tSec = performance.now() * 0.001;
-
-      const cx   = W * 0.7;
-      const cy   = H * 0.55;
-      const CAM  = 7;
-      const SSCL = Math.min(W, H) * 0.55;
-      spCX = cx; spCY = cy; spSCL = SSCL;
-
-      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-      spCosX = cosX; spSinX = sinX; spCosY = cosY; spSinY = sinY;
-
-      // ── 3-D surface ripples: advance and compute per-node radial displacement ──
-      nodeDisp.fill(0);
-      for (let ri = ripples.length - 1; ri >= 0; ri--) {
-        const rip = ripples[ri];
-        rip.t++;
-        if (rip.t > rip.max) { ripples.splice(ri, 1); continue; }
-        const prog      = rip.t / rip.max;
-        const waveFront = prog * Math.PI;                        // sweeps 0 → π
-        const amp       = 0.22 * Math.sin(prog * Math.PI);      // inward dent: nodes pull toward centre
-        const [rox, roy, roz] = rip.origin;
-        for (let i = 0; i < N; i++) {
-          const dot     = pts[i][0]*rox + pts[i][1]*roy + pts[i][2]*roz;
-          const angDist = Math.acos(Math.max(-1, Math.min(1, dot)));
-          const diff    = angDist - waveFront;
-          nodeDisp[i]  += amp * Math.exp(-20 * diff * diff);
-        }
-      }
-
-      // ── rotate + project in one pass, write into pre-allocated buffers ──
-      for (let i = 0; i < N; i++) {
-        const rd = 1 + nodeDisp[i];                              // radial multiplier
-        const px = pts[i][0]*rd, py = pts[i][1]*rd, pz = pts[i][2]*rd;
-        const x1 = px*cosY + pz*sinY,  z1 = -px*sinY + pz*cosY;
-        const y2 = py*cosX - z1*sinX,  z2 =  py*sinX + z1*cosX;
-        tp[i][0] = x1; tp[i][1] = y2; tp[i][2] = z2;
-        const zp = z2 + CAM;
-        projected[i][0] = cx + x1 * SSCL * CAM / zp;
-        projected[i][1] = cy + y2 * SSCL * CAM / zp;
-        projected[i][2] = z2;
-      }
-
-      // ── EDGES — no sort; alpha already encodes depth ──
-      ctx.lineWidth = 0.5;
-      for (const [i, j, d] of edges) {
-        const avgZ = (tp[i][2] + tp[j][2]) * 0.5;
-        let alpha;
-        if (avgZ < 0) {
-          const backT = -avgZ;
-          alpha = (0.012 + (1 - backT) * 0.028) * (1 - d / EDGE_T);
-        } else {
-          alpha = (0.04 + Math.min(1, avgZ) * 0.16) * (1 - d / EDGE_T);
-        }
-        if (alpha < 0.004) continue;
-        ctx.strokeStyle = `rgba(${aR},${aG},${aB},${alpha.toFixed(3)})`;
-        ctx.beginPath();
-        ctx.moveTo(projected[i][0], projected[i][1]);
-        ctx.lineTo(projected[j][0], projected[j][1]);
-        ctx.stroke();
-      }
-
-      // ── DOTS — painter's order back→front, write into pre-allocated sortedPts ──
-      for (let i = 0; i < N; i++) {
-        sortedPts[i][0] = i;
-        sortedPts[i][1] = projected[i][0];
-        sortedPts[i][2] = projected[i][1];
-        sortedPts[i][3] = projected[i][2];
-      }
-      sortedPts.sort((a, b) => a[3] - b[3]);
-
-      for (const [oi, px, py, pz] of sortedPts) {
-        let r, a;
-        if (pz < 0) {
-          const backT = -pz;
-          a = 0.28 + (1 - backT) * 0.34;
-          r = 0.70 + (1 - backT) * 0.40;
-        } else {
-          const frontT = pz;
-          a = 0.20 + frontT * 0.85;
-          r = 0.58 + frontT * 1.22;
-        }
-        const amp   = 0.18 * spIntensity;
-        const pulse = 1 - amp + amp * (0.5 + 0.5 * Math.sin(tSec * PULSE_F[oi] * 6.2832 + PULSE_P[oi]));
-        a *= pulse;
-        r *= (0.94 + 0.06 * pulse);
-        ctx.fillStyle = `rgba(${aR},${aG},${aB},${Math.min(1, a).toFixed(3)})`;
-        ctx.beginPath();
-        ctx.arc(px, py, Math.max(0.3, r), 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // ── CPU event overlays ──
-      for (let ei = effects.length - 1; ei >= 0; ei--) {
-        const ef = effects[ei];
-        ef.t++;
-        if (ef.t > ef.max) { effects.splice(ei, 1); continue; }
-        const prog = ef.t / ef.max;
-        const fade = 1 - prog;
-        const rMax = Math.min(W, H) * 0.46;
-
-        if (ef.type === 'fetch') {
-          ctx.strokeStyle = `rgba(126,184,247,${(fade * 0.7).toFixed(3)})`;
-          ctx.lineWidth = 1.8;
-          ctx.beginPath();
-          ctx.arc(cx, cy, prog * rMax, 0, Math.PI * 2);
-          ctx.stroke();
-        } else if (ef.type === 'branch') {
-          ctx.strokeStyle = `rgba(0,220,100,${(fade * 0.65).toFixed(3)})`;
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.arc(cx, cy, prog * rMax, 0, Math.PI * 2);
-          ctx.stroke();
-          if (prog > 0.15) {
-            ctx.beginPath();
-            ctx.arc(cx, cy, (prog - 0.15) * rMax, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-        } else if (ef.type === 'write') {
-          ctx.strokeStyle = `rgba(247,201,126,${(fade * 0.75).toFixed(3)})`;
-          ctx.lineWidth = 1.2;
-          const r0 = prog * rMax * 0.22;
-          const r1 = prog * rMax * 0.52;
-          for (let k = 0; k < 8; k++) {
-            const angle = (k / 8) * Math.PI * 2;
-            ctx.beginPath();
-            ctx.moveTo(cx + Math.cos(angle) * r0, cy + Math.sin(angle) * r0);
-            ctx.lineTo(cx + Math.cos(angle) * r1, cy + Math.sin(angle) * r1);
-            ctx.stroke();
-          }
-        }
-      }
-    }
-    requestAnimationFrame(spFrame);
-
-    // ── click → 3-D surface ripple, only when click lands inside the sphere ──
-    document.addEventListener('click', e => {
-      if (spSCL === 0 || spDimmed) return;
-      const dx = e.clientX - spCX;
-      const dy = e.clientY - spCY;
-      if (dx * dx + dy * dy >= spSCL * spSCL * 1.1) return;
-
-      // Map screen click to model-space unit vector on the sphere front face.
-      // Step 1: normalised view-space coords on the unit sphere
-      const x1  = dx / spSCL;
-      const y2  = dy / spSCL;
-      const len2 = x1*x1 + y2*y2;
-      const z2  = Math.sqrt(1 - Math.min(1, len2));   // front face
-
-      // Step 2: un-rotate — inverse of (rotateY then rotateX) is (un-rotateX then un-rotateY)
-      const py_m = y2  * spCosX + z2  * spSinX;
-      const z1_m = z2  * spCosX - y2  * spSinX;
-      const px_m = x1  * spCosY - z1_m * spSinY;
-      const pz_m = x1  * spSinY + z1_m * spCosY;
-
-      ripples.push({ origin: [px_m, py_m, pz_m], t: 0, max: 75 });
+    // click-push cap — trim oldest so the mesh never grows unbounded.
+    // registered after init so it fires after particles.js's own push handler
+    const CAP = 160;
+    window.addEventListener('click', () => {
+      const p = pjs();
+      if (p && p.particles.array.length > CAP)
+        p.fn.modes.removeParticles(p.particles.array.length - CAP);
     });
+
+    // ── soft spawn: new nodes fade in over ~1.2s instead of snapping ──
+    // onto the mesh at full strength. Dots tween their own opacity; link
+    // lines are scaled by the youngest endpoint's age via a linkParticles
+    // wrap (the line formula is linear in the global opacity, so a
+    // temporary scale is exact).
+    (function softSpawn(){
+      const P = pjs(); if (!P) return;
+      const FADE_MS = 1200;
+      const OP = P.particles.opacity.value;
+      const ease = t => t * t * (3 - 2 * t);   // smoothstep
+
+      let ticking = false;
+      function fadeTick(){
+        const now = performance.now();
+        let live = false;
+        for (const pt of P.particles.array) {
+          if (!pt.__born) continue;
+          const t = (now - pt.__born) / FADE_MS;
+          if (t >= 1) { pt.opacity = OP; pt.__born = 0; }
+          else { pt.opacity = OP * ease(t); live = true; }
+        }
+        ticking = live;
+        if (live) requestAnimationFrame(fadeTick);
+      }
+
+      const origPush = P.fn.modes.pushParticles;
+      P.fn.modes.pushParticles = function(nb, pos){
+        const before = P.particles.array.length;
+        origPush.call(P.fn.modes, nb, pos);
+        const now = performance.now() || 1;   // truthy: 0 is the "mature" sentinel
+        for (let i = before; i < P.particles.array.length; i++) {
+          P.particles.array[i].__born = now;
+          P.particles.array[i].opacity = 0;
+        }
+        if (!ticking) { ticking = true; requestAnimationFrame(fadeTick); }
+      };
+
+      const origLink = P.fn.interact.linkParticles;
+      P.fn.interact.linkParticles = function(p1, p2){
+        if (!p1.__born && !p2.__born) return origLink.call(P.fn.interact, p1, p2);
+        const now = performance.now();
+        const f1 = p1.__born ? ease(Math.min(1, (now - p1.__born) / FADE_MS)) : 1;
+        const f2 = p2.__born ? ease(Math.min(1, (now - p2.__born) / FADE_MS)) : 1;
+        const saved = P.particles.line_linked.opacity;
+        P.particles.line_linked.opacity = saved * Math.min(f1, f2);
+        origLink.call(P.fn.interact, p1, p2);
+        P.particles.line_linked.opacity = saved;
+      };
+    })();
+
+    // no pause states — per request the mesh always keeps running
+    // (hidden tabs cost nothing anyway: the browser suspends rAF on its own)
+    let low = document.body.classList.contains('low-power');
+    let dim = false;
+    function applyState(){
+      host.classList.toggle('dimmed', dim);
+      const p = pjs(); if (!p) return;
+      const target = low ? Math.round(baseCount / 2) : baseCount;
+      const n = p.particles.array.length;
+      if (n > target) p.fn.modes.removeParticles(n - target);
+      else if (n < target) p.fn.modes.pushParticles(target - n);
+      p.particles.move.speed = low ? .8 : 1.5;
+    }
+    window.particlesSetPerf = on => { low = !!on; applyState(); };
+
+    const heroEl = document.getElementById('hero');
+    if (heroEl && 'IntersectionObserver' in window) {
+      new IntersectionObserver(entries => {
+        dim = !entries[0].isIntersecting;
+        applyState();
+      }, { threshold: 0.1 }).observe(heroEl);
+    }
+    applyState();
   })();
 
 
@@ -3647,12 +3815,6 @@
     if (e.data === 'closeBIPV') { closeBIPV(); return; }
     if (e.data === 'closeGoKart') { closeGoKart(); return; }
     if (e.data === 'openCalcFromDetail') { closeCPU(); setTimeout(openCalc, 220); return; }
-    if (e.data && e.data.type === 'sphereEvent' && window.sphereCpuEvent) {
-      window.sphereCpuEvent(e.data.event);
-    }
-    if (e.data && e.data.type === 'sphereIntensity' && window.sphereSetIntensity) {
-      window.sphereSetIntensity(e.data.value);
-    }
   });
 
 </script>
@@ -3661,25 +3823,23 @@
 <div id="calc-overlay" onclick="closeCalc()" style="
   display:none; opacity:0;
   position:fixed; inset:0; z-index:9990;
-  background:rgba(0,0,0,.72);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.85);
   align-items:center; justify-content:center;
   cursor:pointer;
 ">
   <div data-modal-inner onclick="event.stopPropagation()" style="
     width:min(1000px,96vw); height:min(750px,92vh);
-    border:1px solid #3a3a42;
+    border:1px solid #2a2a2a;
     border-radius:8px; overflow:hidden;
-    background:#0d0d0f;
-    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(126,184,247,.08);
+    background:#000000;
+    box-shadow:0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(130,190,255,.08);
     display:flex; flex-direction:column;
     cursor:default; transform:scale(0.96);
   ">
     <div style="
       display:flex; align-items:center; justify-content:space-between;
       padding:0 14px; height:36px;
-      background:#111114; border-bottom:1px solid #252529;
+      background:#080808; border-bottom:1px solid #1c1c1c;
       flex-shrink:0;
     ">
       <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#7a7a92; letter-spacing:.08em;">

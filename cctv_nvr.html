@@ -6,25 +6,25 @@
 <title>CCTV NVR — YOLOv8n + ROI Alerting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:         #0a0a0c;
-    --bg2:        #0f0f12;
-    --bg3:        #141418;
-    --border:     #1e1e24;
-    --border-hi:  #2a2a33;
-    --text:       #e8e8f0;
-    --text-dim:   #8888a0;
-    --text-faint: #6a6a85;
-    --accent:     #7eb8f7;
+    --bg:         #000000;
+    --bg2:        #060606;
+    --bg3:        #0c0c0c;
+    --border:     #1c1c1c;
+    --border-hi:  #2a2a2a;
+    --text:       #f4f4f4;
+    --text-dim:   #e6e6e6;
+    --text-faint: #aaaaaa;
+    --accent:     #82beff;
     --accent2:    #5a9de8;
-    --green:      #6bcb8b;
-    --amber:      #f0b44a;
+    --green:      #82ffce;
+    --amber:      #ffc86a;
     --red:        #e05c5c;
     --purple:     #b48ef7;
     --mono:       'IBM Plex Mono', monospace;
-    --sans:       'Inter', sans-serif;
+    --sans:       'IBM Plex Sans', sans-serif;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -48,9 +48,9 @@
   .hero-sub { font-family: var(--mono); font-size: 13px; color: var(--text-dim); letter-spacing: .04em; margin-bottom: 28px; }
   .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 44px; }
   .htag { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; padding: 4px 10px; border-radius: 3px; border: 1px solid; }
-  .htag.hw { color: var(--amber);  border-color: rgba(240,180,74,.25);  background: rgba(240,180,74,.06); }
-  .htag.sw { color: var(--accent); border-color: rgba(126,184,247,.25); background: rgba(126,184,247,.06); }
-  .htag.ai { color: var(--green);  border-color: rgba(107,203,139,.25); background: rgba(107,203,139,.06); }
+  .htag.hw { color: var(--amber);  border-color: rgba(255,200,106,.25);  background: rgba(255,200,106,.06); }
+  .htag.sw { color: var(--accent); border-color: rgba(130,190,255,.25); background: rgba(130,190,255,.06); }
+  .htag.ai { color: var(--green);  border-color: rgba(130,255,206,.25); background: rgba(130,255,206,.06); }
   .htag.pu { color: var(--purple); border-color: rgba(180,142,247,.25); background: rgba(180,142,247,.06); }
 
   .divider { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
@@ -59,7 +59,7 @@
   h3 { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); letter-spacing: .06em; margin: 28px 0 10px; }
   p { color: var(--text-dim); margin-bottom: 14px; font-size: 14.5px; }
   p strong { color: var(--text); font-weight: 500; }
-  code { font-family: var(--mono); font-size: 12px; color: var(--amber); background: rgba(240,180,74,.08); padding: 1px 5px; border-radius: 2px; }
+  code { font-family: var(--mono); font-size: 12px; color: var(--amber); background: rgba(255,200,106,.08); padding: 1px 5px; border-radius: 2px; }
 
   /* ── RESULT PILLS ── */
   .result-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
@@ -82,9 +82,9 @@
     line-height: 1.4; white-space: nowrap; position: relative; z-index: 1;
   }
   .pip-box .pip-sub { font-size: 9px; color: var(--text-faint); margin-top: 2px; }
-  .pip-box.blue   { color: var(--accent); border-color: rgba(126,184,247,.35); background: rgba(126,184,247,.07); }
-  .pip-box.green  { color: var(--green);  border-color: rgba(107,203,139,.35); background: rgba(107,203,139,.07); }
-  .pip-box.amber  { color: var(--amber);  border-color: rgba(240,180,74,.35);  background: rgba(240,180,74,.07); }
+  .pip-box.blue   { color: var(--accent); border-color: rgba(130,190,255,.35); background: rgba(130,190,255,.07); }
+  .pip-box.green  { color: var(--green);  border-color: rgba(130,255,206,.35); background: rgba(130,255,206,.07); }
+  .pip-box.amber  { color: var(--amber);  border-color: rgba(255,200,106,.35);  background: rgba(255,200,106,.07); }
   .pip-box.purple { color: var(--purple); border-color: rgba(180,142,247,.35); background: rgba(180,142,247,.07); }
   .pip-box.red    { color: var(--red);    border-color: rgba(224,92,92,.35);   background: rgba(224,92,92,.07); }
   .pip-box.dim    { color: var(--text-dim); border-color: var(--border-hi); background: var(--bg3); }
@@ -122,8 +122,8 @@
   }
   .state-box .st-name { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
   .state-box .st-desc { font-size: 10px; color: var(--text-faint); }
-  .state-box.clear    { color: var(--green);  border-color: rgba(107,203,139,.35); background: rgba(107,203,139,.07); }
-  .state-box.debounce { color: var(--amber);  border-color: rgba(240,180,74,.35);  background: rgba(240,180,74,.07); }
+  .state-box.clear    { color: var(--green);  border-color: rgba(130,255,206,.35); background: rgba(130,255,206,.07); }
+  .state-box.debounce { color: var(--amber);  border-color: rgba(255,200,106,.35);  background: rgba(255,200,106,.07); }
   .state-box.alert    { color: var(--red);    border-color: rgba(224,92,92,.35);   background: rgba(224,92,92,.07); }
   .state-box.cooldown { color: var(--purple); border-color: rgba(180,142,247,.35); background: rgba(180,142,247,.07); }
   .state-arr { font-family: var(--mono); font-size: 20px; color: var(--text-faint); padding: 0 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
@@ -165,8 +165,8 @@
   }
   .res-grid-lines {
     position: absolute; inset: 0;
-    background-image: linear-gradient(rgba(126,184,247,.04) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(126,184,247,.04) 1px, transparent 1px);
+    background-image: linear-gradient(rgba(130,190,255,.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(130,190,255,.04) 1px, transparent 1px);
     background-size: 32px 32px;
   }
   .res-bbox {
@@ -215,7 +215,7 @@
   </div>
   <div style="margin-bottom:32px;">
     <a href="https://github.com/GreaseMonkeyIT/NVR_Box" target="_blank"
-       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(126,184,247,.04);transition:border-color .15s,color .15s;"
+       style="display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--text-dim);border:1px solid var(--border-hi);border-radius:4px;padding:7px 16px;text-decoration:none;background:rgba(130,190,255,.04);transition:border-color .15s,color .15s;"
        onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
        onmouseout="this.style.borderColor='var(--border-hi)';this.style.color='var(--text-dim)'">
       ↗ &nbsp;VIEW ON GITHUB
@@ -382,8 +382,8 @@
       <div class="res-screen">
         <div class="res-grid-lines"></div>
         <!-- simulated bounding box -->
-        <div class="res-bbox" style="top:28%;left:35%;width:28%;height:48%;border-color:rgba(107,203,139,.7);"></div>
-        <div style="position:absolute;top:28%;left:35%;font-family:var(--mono);font-size:9px;color:var(--green);background:rgba(107,203,139,.15);padding:1px 4px;border-radius:2px;">ID 3</div>
+        <div class="res-bbox" style="top:28%;left:35%;width:28%;height:48%;border-color:rgba(130,255,206,.7);"></div>
+        <div style="position:absolute;top:28%;left:35%;font-family:var(--mono);font-size:9px;color:var(--green);background:rgba(130,255,206,.15);padding:1px 4px;border-radius:2px;">ID 3</div>
         <div class="res-tag">CIF — 352×288</div>
       </div>
       <div class="res-dim" style="color:var(--green)">352 × 288</div>

@@ -7,10 +7,12 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:     #0d0d0f; --bg2: #111114; --bg3: #16161a; --bd: #252529;
-  --bhi:    #3a3a42; --text: #ffffff; --dim: #e0e0f0; --faint: #a0a0bc;
-  --accent: #7eb8f7; --amber: #f7c97e; --green: #7ef7b8;
-  --pink:   #f77eb8; --red: #f77e7e;
+  /* bg2/bg3 are translucent so every panel sits visibly on the particle
+     backdrop behind the whole UI */
+  --bg:     #000000; --bg2: rgba(12,12,12,.78); --bg3: rgba(18,18,18,.82); --bd: #1c1c1c;
+  --bhi:    #2a2a2a; --text: #f4f4f4; --dim: #e6e6e6; --faint: #aaaaaa;
+  --accent: #82beff; --amber: #ffc86a; --green: #82ffce;
+  --pink:   #ff82c8; --red: #f77e7e;
   --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -62,7 +64,7 @@ input[type=range] { accent-color: var(--accent); cursor: pointer; }
   text-align: right; margin-top: 2px; min-height: 18px; letter-spacing: .04em;
 }
 .disp-note {
-  font-family: var(--mono); font-size: 9px; color: #44445a;
+  font-family: var(--mono); font-size: 9px; color: #aaaaaa;
   text-align: right; margin-top: 4px; letter-spacing: .06em;
   text-transform: uppercase;
 }
@@ -92,9 +94,9 @@ input[type=range] { accent-color: var(--accent); cursor: pointer; }
 .key.op    { color: var(--accent); }
 .key.bit   { color: var(--amber); font-size: 17px; }
 .key.fn    { color: var(--green); font-size: 17px; }
-.key.eq    { background: var(--accent); color: #0d0d0f; font-weight: 600;
+.key.eq    { background: var(--accent); color: #000000; font-weight: 600;
              border-color: var(--accent); }
-.key.eq:hover { background: #a8d4ff; }
+.key.eq:hover { background: #aad6ff; }
 .key.clr   { color: var(--red); }
 .key.wide  { grid-column: span 2; }
 
@@ -112,7 +114,7 @@ input[type=range] { accent-color: var(--accent); cursor: pointer; }
 .bit-nib-sep  { width: 4px; flex-shrink: 0; }
 .bit-lbl {
   width: 18px; text-align: center; font-family: var(--mono);
-  font-size: 8px; color: #383852; flex-shrink: 0;
+  font-size: 8px; color: #9d9d9d; flex-shrink: 0;
 }
 .bit-btn {
   width: 18px; height: 18px; font-size: 10px; font-family: var(--mono);
@@ -121,7 +123,7 @@ input[type=range] { accent-color: var(--accent); cursor: pointer; }
   justify-content: center; transition: background .08s, color .08s, border-color .08s;
   padding: 0; flex-shrink: 0; line-height: 1;
 }
-.bit-btn.on  { background: var(--accent); color: #0d0d0f; border-color: var(--accent); font-weight:600; }
+.bit-btn.on  { background: var(--accent); color: #000000; border-color: var(--accent); font-weight:600; }
 .bit-btn:hover:not(.on) { border-color: var(--bhi); color: var(--text); }
 /* multi-base rows */
 .bases {
@@ -189,12 +191,18 @@ input[type=range] { accent-color: var(--accent); cursor: pointer; }
 .reg-row { display: flex; gap: 6px; line-height: 1.75; }
 .reg-name { color: var(--faint); min-width: 28px; }
 .reg-val  { color: var(--dim); min-width: 70px; }
-.reg-hex  { color: #555568; }
+.reg-hex  { color: #aaaaaa; }
 .reg-row.ret .reg-name,
 .reg-row.ret .reg-val  { color: var(--accent); }
+
+/* ── particle backdrop: the mesh the whole calculator sits on ── */
+#calc-particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#calc-particles canvas { display: block; }
+.app { position: relative; z-index: 1; }
 </style>
 </head>
 <body>
+<div id="calc-particles" aria-hidden="true"></div>
 <div class="app">
 
   <div class="top-bar">
@@ -293,12 +301,12 @@ input[type=range] { accent-color: var(--accent); cursor: pointer; }
       <div class="trace-stats">
         <span><span class="ts-dot" style="background:var(--green)"></span><span id="st-alu">0</span> ALU</span>
         <span><span class="ts-dot" style="background:var(--pink)"></span><span id="st-jmp">0</span> JMP</span>
-        <span style="margin-left:auto;color:#44445a" id="st-total">0 instr</span>
+        <span style="margin-left:auto;color:#aaaaaa" id="st-total">0 instr</span>
       </div>
       <div class="reg-panel" id="reg-panel">
         <div class="reg-title">
           <span>INTEGER REGISTERS</span>
-          <span style="color:#44445a">x10 = a0 (result)</span>
+          <span style="color:#aaaaaa">x10 = a0 (result)</span>
         </div>
         <div id="reg-rows"></div>
       </div>
@@ -306,6 +314,7 @@ input[type=range] { accent-color: var(--accent); cursor: pointer; }
   </div>
 </div>
 
+<script src="js/particles.min.js"></script>
 <script>
 'use strict';
 
@@ -845,6 +854,7 @@ async function addEntries(entries) {
     if (e.type === 'alu')  traceStats.alu++;
     if (e.type === 'jump') traceStats.jmp++;
     updateStats();
+    window.tracePulse && tracePulse(e.type);
     if (delay > 0) await new Promise(r => setTimeout(r, delay));
   }
 }
@@ -1075,6 +1085,78 @@ document.addEventListener('keydown', e => {
   else if (e.key === '^')               kop('^');
   else if (e.key === '~')               kop('~');
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PARTICLE BACKDROP — the mesh the calculator sits on, driven by the CPU trace
+//    · every executed instruction feeds "energy" into the mesh (drift speeds up
+//      while the emulator is running, settles when it halts)
+//    · each instruction also injects a node tinted by its type:
+//      alu → accent blue, jump → green
+// ══════════════════════════════════════════════════════════════════════════════
+(function initCalcBackdrop(){
+  if (!window.particlesJS || !document.getElementById('calc-particles')) return;
+
+  // same mesh as the portfolio page (stock particles.js default, calm speed);
+  // idles at 1, ramps up while the emulator is executing (see energy below)
+  particlesJS('calc-particles', {
+    particles: {
+      number:  { value: 80, density: { enable: true, value_area: 800 } },
+      color:   { value: '#82beff' },
+      shape:   { type: 'circle' },
+      opacity: { value: .5, random: false },
+      size:    { value: 3, random: true },
+      line_linked: { enable: true, distance: 150, color: '#82beff', opacity: .4, width: 1 },
+      move: { enable: true, speed: 1, direction: 'none', random: false, straight: false, out_mode: 'out' }
+    },
+    interactivity: {
+      detect_on: 'window',
+      events: {
+        onhover: { enable: true, mode: 'grab' },
+        onclick: { enable: false },
+        resize: true
+      },
+      modes: {
+        grab: { distance: 140, line_linked: { opacity: 1 } }
+      }
+    },
+    retina_detect: true
+  });
+
+  const pjs = () => (window.pJSDom && window.pJSDom[0] && window.pJSDom[0].pJS) || null;
+
+  const BASE_SPEED = 1;       // calm idle drift, same feel as the portfolio page
+  const CAP        = 120;     // trace pushes never grow the mesh past this
+                              // (natural density count is ~75 at this viewport)
+  const TYPE_RGB   = {
+    alu:  { r: 130, g: 190, b: 255 },   // accent blue
+    jump: { r: 130, g: 255, b: 206 },   // green
+  };
+  let energy   = 0;
+  let lastPush = 0;
+
+  window.tracePulse = function(type){
+    const p = pjs(); if (!p) return;
+    energy = Math.min(4, energy + .35);
+    const now = performance.now();
+    // rate-limit node injection so instant-speed runs don't spam hundreds
+    if (now - lastPush > 90) {
+      lastPush = now;
+      p.fn.modes.pushParticles(1);
+      const np = p.particles.array[p.particles.array.length - 1];
+      if (np && TYPE_RGB[type]) np.color = { rgb: TYPE_RGB[type] };
+      if (p.particles.array.length > CAP)
+        p.fn.modes.removeParticles(p.particles.array.length - CAP);
+    }
+  };
+
+  // energy decay → move.speed eases back to idle after a run
+  setInterval(() => {
+    const p = pjs(); if (!p) return;
+    energy = Math.max(0, energy - .3);
+    const speed = BASE_SPEED + energy;
+    if (p.particles.move.speed !== speed) p.particles.move.speed = speed;
+  }, 250);
+})();
 </script>
 </body>
 </html>
