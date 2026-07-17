@@ -1096,6 +1096,10 @@ document.addEventListener('keydown', e => {
 (function initCalcBackdrop(){
   if (!window.particlesJS || !document.getElementById('calc-particles')) return;
 
+  // touch devices have no cursor: particles.js maps touchmove to the hover
+  // grab, so lines flash to the finger on every tap/drag — disable it there
+  const noCursor = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
   // same mesh as the portfolio page (stock particles.js default, calm speed);
   // idles at 1, ramps up while the emulator is executing (see energy below)
   particlesJS('calc-particles', {
@@ -1111,7 +1115,7 @@ document.addEventListener('keydown', e => {
     interactivity: {
       detect_on: 'window',
       events: {
-        onhover: { enable: true, mode: 'grab' },
+        onhover: { enable: !noCursor, mode: 'grab' },
         onclick: { enable: false },
         resize: true
       },
@@ -1123,6 +1127,26 @@ document.addEventListener('keydown', e => {
   });
 
   const pjs = () => (window.pJSDom && window.pJSDom[0] && window.pJSDom[0].pJS) || null;
+
+  // mobile browsers (and this iframe while its modal is still opening) can
+  // report a 0-sized layout when this script runs; particles.js then inits an
+  // empty 0×0 mesh that never recovers. Re-measure once real dimensions exist.
+  (function ensureSized(){
+    const p = pjs();
+    if (!p || (p.canvas.w > 0 && p.canvas.h > 0)) return;
+    let tries = 0;
+    (function retry(){
+      const P = pjs(); if (!P) return;
+      if (P.canvas.el.offsetWidth > 0 && P.canvas.el.offsetHeight > 0) {
+        P.fn.retinaInit();                     // re-measure canvas + DPR (recomputes from saved originals)
+        P.canvas.el.width  = P.canvas.w;
+        P.canvas.el.height = P.canvas.h;
+        P.fn.vendors.densityAutoParticles();   // refill to the real viewport's density
+      } else if (++tries < 600) {              // keep watching ~10 s, then give up
+        requestAnimationFrame(retry);
+      }
+    })();
+  })();
 
   const BASE_SPEED = 1;       // calm idle drift, same feel as the portfolio page
   const CAP        = 120;     // trace pushes never grow the mesh past this

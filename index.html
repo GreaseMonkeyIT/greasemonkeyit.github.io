@@ -3639,6 +3639,11 @@
     const accent = () =>
       getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#82beff';
 
+    // touch devices have no cursor: particles.js maps touchmove to the hover
+    // repulse (mesh scatters under the finger while scrolling) and touchend to
+    // the click push (every tap/scroll adds nodes) — disable both there
+    const noCursor = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
     // the stock particles.js "default" demo config, verbatim, with two changes:
     // color follows the site accent, and move.speed is 1.5 instead of 6
     // (speed induces panic, smooth induces calm)
@@ -3655,8 +3660,8 @@
       interactivity: {
         detect_on: 'window',
         events: {
-          onhover: { enable: true, mode: 'repulse' },   // the demo's circular void around the cursor
-          onclick: { enable: true, mode: 'push' },
+          onhover: { enable: !noCursor, mode: 'repulse' },   // the demo's circular void around the cursor
+          onclick: { enable: !noCursor, mode: 'push' },
           resize: true
         },
         modes: {
@@ -3668,7 +3673,7 @@
     });
 
     const pjs = () => (window.pJSDom && window.pJSDom[0] && window.pJSDom[0].pJS) || null;
-    const baseCount = pjs() ? pjs().particles.array.length : 70;
+    let baseCount = pjs() ? pjs().particles.array.length : 70;
 
     function hexToRgbObj(hex){
       hex = hex.replace('#','');
@@ -3769,6 +3774,29 @@
       }, { threshold: 0.1 }).observe(heroEl);
     }
     applyState();
+
+    // mobile browsers can still be settling layout / viewport metrics when
+    // this script runs; if particles.js initialised against a 0-sized canvas
+    // its density maths empties the mesh (and baseCount above reads 0) and it
+    // never recovers. Re-run its own measuring path once real dimensions exist.
+    (function ensureSized(){
+      const p = pjs();
+      if (!p || (p.canvas.w > 0 && p.canvas.h > 0)) return;
+      let tries = 0;
+      (function retry(){
+        const P = pjs(); if (!P) return;
+        if (P.canvas.el.offsetWidth > 0 && P.canvas.el.offsetHeight > 0) {
+          P.fn.retinaInit();                     // re-measure canvas + DPR (recomputes from saved originals)
+          P.canvas.el.width  = P.canvas.w;
+          P.canvas.el.height = P.canvas.h;
+          P.fn.vendors.densityAutoParticles();   // refill to the real viewport's density
+          baseCount = P.particles.array.length || baseCount;
+          applyState();
+        } else if (++tries < 600) {              // keep watching ~10 s, then give up
+          requestAnimationFrame(retry);
+        }
+      })();
+    })();
   })();
 
 
